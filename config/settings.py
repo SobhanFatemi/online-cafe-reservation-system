@@ -31,10 +31,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 LOCAL_APPS = [
-    'users',
-    'menu',
-    'reservations',
-    'seating',
+    'users.apps.UsersConfig',
+    'menu.apps.MenuConfig',
+    'reservations.apps.ReservationsConfig',
+    'seating.apps.SeatingConfig',
 ]
 
 INSTALLED_APPS = [
