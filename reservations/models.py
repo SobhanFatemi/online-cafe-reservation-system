@@ -9,6 +9,14 @@ from decimal import Decimal
 
 User = get_user_model()
 
+#Choices
+class Rating(models.IntegerChoices):
+    ONE = 1, "⭐"
+    TWO = 2, "⭐⭐"
+    THREE = 3, "⭐⭐⭐"
+    FOUR = 4, "⭐⭐⭐⭐"
+    FIVE = 5, "⭐⭐⭐⭐⭐"
+
 class Status(models.TextChoices):
     PENDING = "PEN", "Pending"
     CONFIRMED = "CON", "Confirmed"
@@ -20,6 +28,7 @@ class AttendanceStatus(models.TextChoices):
     PRESENT = "PRE", "Present"
     ABSENT = "ABS", "Absent"
 
+#Models
 class Reservation(models.Model):
     user = models.ForeignKey(
         User,
@@ -117,7 +126,7 @@ class Reservation(models.Model):
             )
 
     def __str__(self):
-        return f"{self.user.username}: Table #{self.table.table_number} - ${self.total_price}"
+        return f"Reservation {self.id} - ${self.total_price}"
 
 class ReservationFood(models.Model):
     quantity = models.PositiveIntegerField(
@@ -177,4 +186,98 @@ class ReservationFood(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Table #{self.reservation.table.table_number} - {self.quantity} {self.food_item.name}s"
+        if self.quantity <= 1:
+            plural = self.food_item.name
+
+        else:
+            if self.food_item.name.endswith("y") and self.food_item.name[-2].lower() not in "aeiou":
+                plural = self.food_item.name[:-1] + "ies"
+            else:
+                plural = self.food_item.name + "s"
+
+        return f"Reservation {self.reservation.id} - {self.quantity} {plural}"
+
+class Review(models.Model):
+    user = models.OneToOneField(
+        User,
+        verbose_name="User",
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+
+    reservation = models.OneToOneField(
+        Reservation,
+        verbose_name="Reservation",
+        on_delete=models.CASCADE,
+    )
+
+    comment = models.TextField(
+        max_length=256,
+        verbose_name="Comment",
+    )
+
+    rating = models.IntegerField(
+        verbose_name="Rating",
+        choices=Rating.choices,
+        default=5,
+    )
+
+    created_at = models.DateTimeField(
+        verbose_name="Write Time",
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        verbose_name="Update Time",
+        auto_now=True,
+    )
+
+    def __str__(self):
+        return f"{self.user.username}'s Review on Reservation {self.reservation.id}"
+
+class ReviewReply(models.Model):
+    class Meta:
+        verbose_name_plural = "Review Replies"
+
+    admin = models.OneToOneField(
+        User,
+        verbose_name="Admin",
+        on_delete=models.CASCADE,
+        related_name="review_replies"
+    )
+
+    review = models.OneToOneField(
+        Review,
+        verbose_name="Review",
+        on_delete=models.CASCADE,
+        related_name="review_replies"
+    )
+
+    reply_text = models.TextField(
+        max_length=256,
+        verbose_name="Reply Text",
+    ) 
+
+    created_at = models.DateTimeField(
+        verbose_name="Write Time",
+        auto_now_add=True,
+    )
+
+    def clean(self):
+
+        if self.review.user_id == self.admin_id:
+            raise ValidationError({
+                "admin": "You cannot reply to your own review."
+            })
+        
+        if not self.admin.is_staff:
+            raise ValidationError({
+                "admin": "Only admins can reply to reviews."
+            })
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.admin.username}'s Reply to {self.review.user.username}'s Review on Reservation {self.review.reservation.id}"

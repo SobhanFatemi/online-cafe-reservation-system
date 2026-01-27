@@ -3,6 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from datetime import datetime, date
 
+# Choices
 class DayofWeek(models.TextChoices):
     MONDAY = "MON", "Monday"
     TUESDAY = "TUE", "Tuesday"
@@ -12,7 +13,7 @@ class DayofWeek(models.TextChoices):
     SATURDAY = "SAT", "Saturday"
     SUNDAY = "SUN", "Sunday"
 
-
+# Models
 class CafeTable(models.Model):
     table_number = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
@@ -45,7 +46,7 @@ class CafeTable(models.Model):
     )
 
     def __str__(self):
-        return f"Table #{self.table_number}"
+        return f"Table {self.table_number}"
 
 class TimeSlot(models.Model):
     start_time = models.TimeField(
@@ -82,7 +83,7 @@ class TimeSlot(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Time Slot: {self.duration_minutes} Minutes"
+        return f"Time Slot {self.id} - {self.duration_minutes} Minutes"
 
 class WorkingHour(models.Model):
     start_time = models.TimeField(
