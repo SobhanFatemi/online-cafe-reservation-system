@@ -1,4 +1,5 @@
 from django.db import models
+from common.models import BaseModel
 from seating.models import CafeTable, TimeSlot
 from menu.models import FoodItem
 from django.core.validators import MinValueValidator
@@ -10,7 +11,7 @@ from .choices import Rating, Status, AttendanceStatus
 
 User = get_user_model()
 
-class Reservation(models.Model):
+class Reservation(BaseModel):
     user = models.ForeignKey(
         User,
         verbose_name="User",
@@ -77,7 +78,7 @@ class Reservation(models.Model):
         food_total = (
             self.reservation_foods.aggregate(
                 total=Sum("final_price")
-            )["total"] or 0
+            )["total"] or Decimal("0")
         )
 
         table_total = self.table.price_per_person * self.number_of_people
@@ -90,11 +91,18 @@ class Reservation(models.Model):
 
 
     def clean(self):
+        super().clean()
+
         if self.table and self.number_of_people:
             if self.number_of_people > self.table.capacity:
                 raise ValidationError({
                     "number_of_people": "Exceeds table capacity!"
                 })
+
+        if self.table and not self.table.is_active:
+            raise ValidationError({
+                "table": "This table is not active and cannot be reserved."
+        })
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -109,15 +117,7 @@ class Reservation(models.Model):
     def __str__(self):
         return f"Reservation {self.id} - ${self.total_price}"
 
-class ReservationFood(models.Model):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["reservation", "food_item"],
-                name="unique_food_per_reservation"
-            )
-        ]
-
+class ReservationFood(BaseModel):
     quantity = models.PositiveIntegerField(
         verbose_name="Quantity"
     )
@@ -154,23 +154,33 @@ class ReservationFood(models.Model):
     )
 
     def clean(self):
+        super().clean()
+
         if self.food_item and not self.food_item.is_available:
             raise ValidationError({
                 "food_item": "This food item is not available!"
             })
     
     def save(self, *args, **kwargs):
+        existing = ReservationFood.objects.filter(
+            reservation=self.reservation,
+            food_item=self.food_item
+        ).exclude(pk=self.pk).first()
+
+        if existing:
+            existing.quantity += self.quantity
+            existing.save()
+            return
+
         base = Decimal(self.food_item.price)
 
-        item_discount = str(self.food_item.discount_percent or 0)
-        cat_discount = str(self.food_item.category.discount_percent or 0)
+        if self.food_item.discount:
+            base = self.food_item.discount.apply_to_price(base)
 
-        item_factor = Decimal("1") - (Decimal(item_discount) / Decimal("100"))
-        cat_factor = Decimal("1") - (Decimal(cat_discount) / Decimal("100"))
+        if self.food_item.category.discount:
+            base = self.food_item.category.discount.apply_to_price(base)
 
-        unit_price = base * item_factor * cat_factor
-
-        self.final_price = unit_price * int(self.quantity)
+        self.final_price = base * self.quantity
 
         super().save(*args, **kwargs)
 
@@ -186,7 +196,7 @@ class ReservationFood(models.Model):
 
         return f"Reservation {self.reservation.id} - {self.quantity} {plural}"
 
-class Review(models.Model):
+class Review(BaseModel):
     user = models.OneToOneField(
         User,
         verbose_name="User",
@@ -222,13 +232,13 @@ class Review(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user.username}'s Review on Reservation {self.reservation.id}"
+        return f"{self.comment}"
 
-class ReviewReply(models.Model):
+class ReviewReply(BaseModel):
     class Meta:
         verbose_name_plural = "Review Replies"
 
-    admin = models.OneToOneField(
+    admin = models.ForeignKey(
         User,
         verbose_name="Admin",
         on_delete=models.CASCADE,
@@ -269,4 +279,4 @@ class ReviewReply(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.admin.username}'s Reply to {self.review.user.username}'s Review on Reservation {self.review.reservation.id}"
+        return f"{self.reply_text}"
