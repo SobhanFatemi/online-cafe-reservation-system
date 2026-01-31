@@ -2,18 +2,8 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from datetime import datetime, date
+from .choices import DayofWeek
 
-# Choices
-class DayofWeek(models.TextChoices):
-    MONDAY = "MON", "Monday"
-    TUESDAY = "TUE", "Tuesday"
-    WEDNESDAY = "WED", "Wednesday"
-    THURSDAY = "THU", "Thursday"
-    FRIDAY = "FRI", "Friday"
-    SATURDAY = "SAT", "Saturday"
-    SUNDAY = "SUN", "Sunday"
-
-# Models
 class CafeTable(models.Model):
     table_number = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],

@@ -6,29 +6,10 @@ from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from decimal import Decimal
+from .choices import Rating, Status, AttendanceStatus
 
 User = get_user_model()
 
-#Choices
-class Rating(models.IntegerChoices):
-    ONE = 1, "⭐"
-    TWO = 2, "⭐⭐"
-    THREE = 3, "⭐⭐⭐"
-    FOUR = 4, "⭐⭐⭐⭐"
-    FIVE = 5, "⭐⭐⭐⭐⭐"
-
-class Status(models.TextChoices):
-    PENDING = "PEN", "Pending"
-    CONFIRMED = "CON", "Confirmed"
-    CANCELLED = "CAN", "Cancelled"
-    COMPELETED = "COM", "Compeleted"
-
-class AttendanceStatus(models.TextChoices):
-    UNKNOWN = "UNK", "Unknown"
-    PRESENT = "PRE", "Present"
-    ABSENT = "ABS", "Absent"
-
-#Models
 class Reservation(models.Model):
     user = models.ForeignKey(
         User,
@@ -129,6 +110,14 @@ class Reservation(models.Model):
         return f"Reservation {self.id} - ${self.total_price}"
 
 class ReservationFood(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reservation", "food_item"],
+                name="unique_food_per_reservation"
+            )
+        ]
+
     quantity = models.PositiveIntegerField(
         verbose_name="Quantity"
     )
