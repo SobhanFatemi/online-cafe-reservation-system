@@ -20,6 +20,7 @@ class FoodItemAdmin(BaseAdmin):
         "discount",
         "is_available",
     )
+    autocomplete_fields = ("discount",)
     search_fields = ("name", "category__name")
     list_filter = ("is_available", "category")
     list_select_related = ("category",)
@@ -35,6 +36,6 @@ class Discount(BaseAdmin):
         "created_at"
     )
     list_filter = ("discount_type", "created_at")
-    search_fields = ("description",)
+    search_fields = ("description", "amount")
     ordering = ("-created_at",)
 
