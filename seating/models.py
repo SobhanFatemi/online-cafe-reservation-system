@@ -53,6 +53,13 @@ class TimeSlot(BaseModel):
         editable=False,
     )
 
+    table = models.ForeignKey(
+        CafeTable,
+        verbose_name="Table",
+        on_delete=models.CASCADE,
+        related_name="time_slots",
+    )
+
     def clean(self):
         if self.start_time and self.end_time:
             start = datetime.combine(date.today(), self.start_time)

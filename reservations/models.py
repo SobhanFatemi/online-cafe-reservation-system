@@ -30,14 +30,6 @@ class Reservation(BaseModel):
         verbose_name="Reservation Date"
     )
 
-    time_slot = models.ForeignKey(
-        TimeSlot,
-        verbose_name="Time Slot",
-        on_delete=models.CASCADE,
-        related_name="reservations"
-
-    )
-
     status = models.CharField(
         max_length=3,
         verbose_name="Reservation Status",
@@ -196,12 +188,12 @@ class ReservationFood(BaseModel):
 
         return f"Reservation {self.reservation.id} - {self.quantity} {plural}"
 
-class Review(BaseModel):
+class Comment(BaseModel):
     user = models.OneToOneField(
         User,
         verbose_name="User",
         on_delete=models.CASCADE,
-        related_name="reviews"
+        related_name="comments"
     )
 
     reservation = models.OneToOneField(
@@ -234,27 +226,27 @@ class Review(BaseModel):
     def __str__(self):
         return f"{self.comment}"
 
-class ReviewReply(BaseModel):
+class Reply(BaseModel):
     class Meta:
-        verbose_name_plural = "Review Replies"
+        verbose_name_plural = "Replies"
 
-    admin = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         verbose_name="Admin",
         on_delete=models.CASCADE,
-        related_name="review_replies"
+        related_name="replies"
     )
 
-    review = models.OneToOneField(
-        Review,
+    comment = models.OneToOneField(
+        Comment,
         verbose_name="Review",
         on_delete=models.CASCADE,
-        related_name="review_replies"
+        related_name="replies"
     )
 
-    reply_text = models.TextField(
+    reply = models.TextField(
         max_length=256,
-        verbose_name="Reply Text",
+        verbose_name="Reply",
     ) 
 
     created_at = models.DateTimeField(
@@ -264,12 +256,12 @@ class ReviewReply(BaseModel):
 
     def clean(self):
 
-        if self.review.user_id == self.admin_id:
+        if self.comment.user_id == self.user_id:
             raise ValidationError({
                 "admin": "You cannot reply to your own review."
             })
         
-        if not self.admin.is_staff:
+        if not self.user.is_staff:
             raise ValidationError({
                 "admin": "Only admins can reply to reviews."
             })
@@ -279,4 +271,4 @@ class ReviewReply(BaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.reply_text}"
+        return f"{self.reply}"

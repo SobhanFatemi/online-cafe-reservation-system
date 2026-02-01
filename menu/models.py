@@ -133,6 +133,19 @@ class FoodItem(BaseModel):
         related_name="food_items"
     )
 
+    description = models.TextField(
+        verbose_name="Description",
+        max_length=256,
+        null=True,
+        blank=True,
+    )
+
+    image = models.ImageField(
+        upload_to="food_images/",
+        null=True,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(
         verbose_name="Write Time",
         auto_now_add=True,

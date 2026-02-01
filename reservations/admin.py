@@ -1,6 +1,6 @@
 from django.contrib import admin
 from common.admin import BaseAdmin
-from .models import Reservation, ReservationFood, Review, ReviewReply
+from .models import Reservation, ReservationFood, Comment, Reply
 
 
 class ReservationFoodInline(admin.TabularInline):
@@ -25,7 +25,6 @@ class ReservationAdmin(BaseAdmin):
         "status",
         "attendance_status",
         "date",
-        "time_slot",
         "table",
     )
 
@@ -38,15 +37,14 @@ class ReservationAdmin(BaseAdmin):
     list_select_related = (
         "user",
         "table",
-        "time_slot",
     )
 
     inlines = [ReservationFoodInline]
     date_hierarchy = "date"
     ordering = ("-created_at",)
 
-@admin.register(Review)
-class ReviewAdmin(BaseAdmin):
+@admin.register(Comment)
+class CommentAdmin(BaseAdmin):
     list_display = (
         "id",
         "user",
@@ -64,19 +62,19 @@ class ReviewAdmin(BaseAdmin):
 
     list_select_related = ("user", "reservation")
 
-@admin.register(ReviewReply)
-class ReviewReplyAdmin(BaseAdmin):
+@admin.register(Reply)
+class ReplyAdmin(BaseAdmin):
     list_display = (
         "id",
-        "admin",
-        "review",
+        "user",
+        "comment",
         "created_at",
     )
 
     search_fields = (
-        "admin__username",
-        "review__id",
-        "reply_text",
+        "user__username",
+        "comment__id",
+        "reply",
     )
 
-    list_select_related = ("admin", "review")
+    list_select_related = ("user", "review")
