@@ -1,0 +1,68 @@
+<h2>Menu</h2>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+
+{% for category in categories %}
+    <div style="border: 1px solid #ccc; padding: 12px;">
+        <p>
+            <h3 style="display: inline;">{{ category.name }}</h3>
+
+            {% if category.discount %}
+                <h3 style="color: red; display: inline;"> — {{ category.discount }} OFF</h3>
+            {% endif %}
+        </p>
+        <hr>
+
+        {% for food in category.food_items.all %}
+            {% if food.is_available %}
+                <div>
+
+                    <h4>{{ food.name }}</h4>
+
+                    {% if food.image %}
+                        <img src="{{ food.image.url }}" height="120">
+                    {% endif %}
+
+                    <p>
+                        Price:
+                        
+                        {% if food.discount and food.category.discount %}
+                            <s>${{ food.price }}</s>
+                            <strong>${{ food.get_discounted_price }}</strong>
+                            <span style="color:red;">
+                                — {{ food.discount.amount }}% + {{ food.category.discount.amount }}% OFF
+                            </span>
+
+                        {% elif food.discount %}
+                            <s>${{ food.price }}</s>
+                            <strong>${{ food.get_discounted_price }}</strong>
+                            <span style="color:red;">
+                                — {{ food.discount.amount }}% OFF
+                            </span>
+
+                        {% elif food.category.discount %}
+                            <s>${{ food.price }}</s>
+                            <strong>${{ food.get_discounted_price }}</strong>
+                            <span style="color:red;">
+                                — {{ food.category.discount.amount }}% OFF
+                            </span>
+                        
+                        {% else %}
+                            ${{ food.price }}
+                        {% endif %}
+                    </p>
+
+
+
+
+                    <p>{{ food.description }}</p>
+
+                </div>
+                <hr>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+{% endfor %}
+
+</div>

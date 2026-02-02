@@ -17,8 +17,10 @@ class CafeTable(BaseModel):
         verbose_name="Capacity"
     )
 
-    price_per_person = models.PositiveIntegerField(
+    price_per_person = models.DecimalField(
         validators=[MinValueValidator(0)],
+        max_digits=10,
+        decimal_places=2,
         verbose_name="Price (Per Person)"
     )
 

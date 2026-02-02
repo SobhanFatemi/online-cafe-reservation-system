@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from common.models import BaseModel
 from django.core.validators import MaxValueValidator, MinValueValidator
 from .choices import Type
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 class Discount(BaseModel):
     discount_type = models.CharField(
@@ -36,10 +36,10 @@ class Discount(BaseModel):
     
     def apply_to_price(self, price):
 
-        if self.discount_type == self.Type.PERCENT:
+        if self.discount_type == Type.PERCENT:
             return price * (Decimal("1") - Decimal(self.amount) / Decimal("100"))
 
-        if self.discount_type == self.Type.FIXED:
+        if self.discount_type == Type.FIXED:
             return max(price - Decimal(self.amount), Decimal("0"))
 
         return price
@@ -79,7 +79,7 @@ class Category(BaseModel):
         verbose_name="Name"
     )
 
-    discount = models.OneToOneField(
+    discount = models.ForeignKey(
         Discount,
         verbose_name="Discount",
         on_delete=models.SET_NULL,
@@ -107,12 +107,14 @@ class FoodItem(BaseModel):
         verbose_name="Name"
     )
 
-    price = models.PositiveIntegerField(
-        validators=[MinValueValidator(0)],
+    price = models.DecimalField(
         verbose_name="Price",
+        validators=[MinValueValidator(0)],
+        max_digits=10,
+        decimal_places=2,
     )
 
-    discount = models.OneToOneField(
+    discount = models.ForeignKey(
         Discount,
         verbose_name="Discount",
         on_delete=models.SET_NULL,
@@ -155,6 +157,17 @@ class FoodItem(BaseModel):
         verbose_name="Update Time",
         auto_now=True,
     )
+
+    def get_discounted_price(self):
+        price = self.price
+
+        if self.discount:
+            price = self.discount.apply_to_price(price)
+
+        if self.category.discount:
+            price = self.category.discount.apply_to_price(price)
+
+        return price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def clean(self):
         super().clean()
