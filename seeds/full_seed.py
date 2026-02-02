@@ -68,4 +68,39 @@ for n,c,p,d,disc in items:
         is_available=True
     )
 
+cat = Category.objects.create(name="Smoothies")
+
+FoodItem.objects.bulk_create([
+    FoodItem(
+        name="Strawberry Smoothie",
+        category=cat,
+        price=Decimal("5.40"),
+        description="Fresh strawberry blended smoothie.",
+        is_available=True
+    ),
+    FoodItem(
+        name="Mango Smoothie",
+        category=cat,
+        price=Decimal("5.60"),
+        description="Sweet mango smoothie with ice.",
+        is_available=True
+    ),
+    FoodItem(
+        name="Banana Smoothie",
+        category=cat,
+        price=Decimal("5.20"),
+        description="Creamy banana milk smoothie.",
+        is_available=True
+    ),
+    FoodItem(
+        name="Berry Mix Smoothie",
+        category=cat,
+        price=Decimal("5.90"),
+        description="Mixed berries smoothie.",
+        is_available=True
+    ),
+])
+
 print("SEEDED")
+
+

@@ -52,9 +52,10 @@
                         {% endif %}
                     </p>
 
-
-
-
+                    <p>
+                        ⭐{{ food.avg_rating|default:"No ratings" }}
+                    </p>
+                    
                     <p>{{ food.description }}</p>
 
                 </div>

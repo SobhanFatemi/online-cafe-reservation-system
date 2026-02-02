@@ -19,11 +19,11 @@ class Reservation(BaseModel):
         related_name="reservations"
     )
 
-    table = models.ForeignKey(
-        CafeTable,
-        verbose_name="Table",
+    time_slot = models.OneToOneField(
+        TimeSlot,
+        verbose_name="Time Slot",
         on_delete=models.CASCADE,
-        related_name="reservations"
+        related_name="reservations",
     )
 
     date = models.DateField(
@@ -73,7 +73,7 @@ class Reservation(BaseModel):
             )["total"] or Decimal("0")
         )
 
-        table_total = self.table.price_per_person * self.number_of_people
+        table_total = self.time_slot.table.price_per_person * self.number_of_people
 
         return food_total + table_total
 
@@ -85,15 +85,15 @@ class Reservation(BaseModel):
     def clean(self):
         super().clean()
 
-        if self.table and self.number_of_people:
-            if self.number_of_people > self.table.capacity:
+        if self.time_slot.table and self.number_of_people:
+            if self.number_of_people > self.time_slot.table.capacity:
                 raise ValidationError({
                     "number_of_people": "Exceeds table capacity!"
                 })
 
-        if self.table and not self.table.is_active:
+        if self.time_slot.table and not self.time_slot.table.is_active:
             raise ValidationError({
-                "table": "This table is not active and cannot be reserved."
+                "time_slot": "This table is not active and cannot be reserved."
         })
 
     def save(self, *args, **kwargs):
@@ -223,6 +223,14 @@ class Comment(BaseModel):
         auto_now=True,
     )
 
+    def clean(self):
+        super().clean()
+
+        if self.reservation and self.user:
+            if self.reservation.user_id != self.user_id:
+                raise ValidationError({
+                    "user": "User must match the reservation owner."
+                })
     def __str__(self):
         return f"{self.comment}"
 

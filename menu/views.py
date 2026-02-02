@@ -1,6 +1,7 @@
 from django.shortcuts import render
+from django.db.models import Avg, Prefetch
 from django.views.generic import ListView
-from .models import Category
+from .models import Category, FoodItem
 
 class MenuView(ListView):
     model = Category
@@ -8,4 +9,9 @@ class MenuView(ListView):
     context_object_name = "categories"
 
     def get_queryset(self):
-        return Category.objects.prefetch_related("food_items")
+        food_qs = FoodItem.objects.annotate(
+            avg_rating=Avg("reservation_foods__reservation__comment__rating")
+        )
+        return Category.objects.prefetch_related(
+            Prefetch("food_items", queryset=food_qs)
+        )
