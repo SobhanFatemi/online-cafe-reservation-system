@@ -1,0 +1,94 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.menu-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    justify-content: center;
+    gap: 54px;
+    padding: 20px;
+    
+}
+
+.category-card {
+    border: 1px solid #ccc;
+    padding: 14px;
+    border-radius: 8px;
+    background: #fafafa;
+    max-width: 320px;
+    justify-content: center;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.category-title {
+    margin: auto;
+    font-size: 18px;
+}
+
+.category-discount {
+    color: red;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.food-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.food-item:last-child {
+    border-bottom: none;
+}
+
+.food-name {
+    text-align: center;
+    margin: 4px 0;
+    font-size: 16px;
+}
+
+.food-image {
+    display: block;
+    height: 120px;
+    object-fit: cover;
+    margin: 8px auto;
+}
+
+.price-old {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 6px;
+}
+
+.price-new {
+    font-weight: bold;
+    color: #222;
+}
+
+.discount-label {
+    color: red;
+    font-size: 13px;
+    margin-left: 6px;
+}
+
+.rating {
+    color: #f5b301;
+    font-weight: bold;
+}
+
+.food-description {
+    font-size: 14px;
+    color: #555;
+}

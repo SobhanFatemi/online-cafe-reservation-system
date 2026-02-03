@@ -1,69 +1,87 @@
-<h2>Menu</h2>
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu</title>
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+</head>
 
-<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+<body>
 
-{% for category in categories %}
-    <div style="border: 1px solid #ccc; padding: 12px;">
-        <p>
-            <h3 style="display: inline;">{{ category.name }}</h3>
+<div class="menu-wrapper">
+    <div class="menu-grid">
 
-            {% if category.discount %}
-                <h3 style="color: red; display: inline;"> — {{ category.discount }} OFF</h3>
-            {% endif %}
-        </p>
-        <hr>
+    {% for category in categories %}
+        <div class="category-card">
 
-        {% for food in category.food_items.all %}
-            {% if food.is_available %}
-                <div>
+            <div class="category-header">
+                <h3 class="category-title">{{ category.name }}</h3>
 
-                    <h4>{{ food.name }}</h4>
+                {% if category.discount %}
+                    <span class="category-discount">
+                        - {{ category.discount.amount }}% OFF
+                    </span>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            {% for food in category.food_items.all %}
+                {% if food.is_available %}
+                <div class="food-item">
+
+                    <h4 class="food-name">{{ food.name }}</h4>
 
                     {% if food.image %}
-                        <img src="{{ food.image.url }}" height="120">
+                        <img src="{{ food.image.url }}" class="food-image">
                     {% endif %}
 
                     <p>
-                        Price:
-                        
-                        {% if food.discount and food.category.discount %}
-                            <s>${{ food.price }}</s>
-                            <strong>${{ food.get_discounted_price }}</strong>
-                            <span style="color:red;">
-                                — {{ food.discount.amount }}% + {{ food.category.discount.amount }}% OFF
-                            </span>
+                    Price:
 
-                        {% elif food.discount %}
-                            <s>${{ food.price }}</s>
-                            <strong>${{ food.get_discounted_price }}</strong>
-                            <span style="color:red;">
-                                — {{ food.discount.amount }}% OFF
-                            </span>
+                    {% if food.discount and food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% + {{ food.category.discount.amount }}% OFF
+                        </span>
 
-                        {% elif food.category.discount %}
-                            <s>${{ food.price }}</s>
-                            <strong>${{ food.get_discounted_price }}</strong>
-                            <span style="color:red;">
-                                — {{ food.category.discount.amount }}% OFF
-                            </span>
-                        
-                        {% else %}
-                            ${{ food.price }}
-                        {% endif %}
+                    {% elif food.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% OFF
+                        </span>
+
+                    {% elif food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.category.discount.amount }}% OFF
+                        </span>
+
+                    {% else %}
+                        <span class="price-new">${{ food.price }}</span>
+                    {% endif %}
                     </p>
 
-                    <p>
-                        ⭐{{ food.avg_rating|default:"No ratings" }}
+                    <p class="rating">
+                        ★ {{ food.avg_rating|default:"No ratings" }}
                     </p>
-                    
-                    <p>{{ food.description }}</p>
+
+                    <p class="food-description">
+                        {{ food.description }}
+                    </p>
 
                 </div>
-                <hr>
-            {% endif %}
-        {% endfor %}
+                {% endif %}
+            {% endfor %}
+
+        </div>
+    {% endfor %}
 
     </div>
-{% endfor %}
-
 </div>
+
+</body>
+</html>
