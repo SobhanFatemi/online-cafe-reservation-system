@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from common.admin import BaseAdmin
 from .models import CafeTable, TimeSlot, WorkingHour
 
@@ -15,6 +15,21 @@ class CafeTableAdmin(BaseAdmin):
     search_fields = ("table_number",)
     list_filter = ("is_active", "capacity")
     ordering = ("table_number",)
+
+    actions = (
+        "active",
+        "deactive",
+    )
+
+    @admin.action(description="Active selected tables")
+    def active(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, "Selected table or tables are active now!", messages.SUCCESS)
+
+    @admin.action(description="Deactive selected tables")
+    def deactive(self, request, queryset):
+        queryset.update(is_active=False)
+        self.message_user(request, "Selected table or tables are deactive now!", messages.SUCCESS)
 
 
 @admin.register(TimeSlot)

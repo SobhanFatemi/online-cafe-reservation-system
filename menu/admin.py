@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from common.admin import BaseAdmin
 from .models import Category, FoodItem, Discount
 
@@ -25,6 +25,21 @@ class FoodItemAdmin(BaseAdmin):
     list_filter = ("is_available", "category")
     list_select_related = ("category",)
     ordering = ("name",)
+
+    actions = (
+        "available",
+        "unavailable",
+    )
+
+    @admin.action(description="Available of selected food items")
+    def available(self, request, queryset):
+        queryset.update(is_available=True)
+        self.message_user(request, "Selected food item or food items are available now!", messages.SUCCESS)
+
+    @admin.action(description="Unavailable of selected food items")
+    def unavailable(self, request, queryset):
+        queryset.update(is_available=False)
+        self.message_user(request, "Selected food item or food items are unavailable now!", messages.SUCCESS)
 
 @admin.register(Discount)
 class Discount(BaseAdmin):

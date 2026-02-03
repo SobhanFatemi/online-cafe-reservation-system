@@ -28,13 +28,13 @@ body {
 
 .category-header {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
 }
 
 .category-title {
-    margin: auto;
     font-size: 18px;
 }
 

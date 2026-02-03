@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background: #f5f6f8;
+    background: #131313;
 }
 
 .auth-wrapper {
@@ -16,6 +16,7 @@ body {
     background: white;
     width: 380px;
     padding: 32px;
+    padding-right: 45px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
