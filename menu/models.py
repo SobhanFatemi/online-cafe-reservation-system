@@ -1,8 +1,9 @@
 from django.db import models
+from common.models import BaseModel
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 #Models
-class Category(models.Model):
+class Category(BaseModel):
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -31,7 +32,7 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-class FoodItem(models.Model):
+class FoodItem(BaseModel):
     name = models.CharField(
         max_length=32,
         verbose_name="Name"

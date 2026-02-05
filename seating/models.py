@@ -1,20 +1,11 @@
 from django.db import models
+from common.models import BaseModel
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from datetime import datetime, date
+from .choices import DayofWeek
 
-# Choices
-class DayofWeek(models.TextChoices):
-    MONDAY = "MON", "Monday"
-    TUESDAY = "TUE", "Tuesday"
-    WEDNESDAY = "WED", "Wednesday"
-    THURSDAY = "THU", "Thursday"
-    FRIDAY = "FRI", "Friday"
-    SATURDAY = "SAT", "Saturday"
-    SUNDAY = "SUN", "Sunday"
-
-# Models
-class CafeTable(models.Model):
+class CafeTable(BaseModel):
     table_number = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         unique=True,
@@ -48,7 +39,7 @@ class CafeTable(models.Model):
     def __str__(self):
         return f"Table {self.table_number}"
 
-class TimeSlot(models.Model):
+class TimeSlot(BaseModel):
     start_time = models.TimeField(
         verbose_name="Start Time"
     )
@@ -73,19 +64,26 @@ class TimeSlot(models.Model):
                    "end_time": "End Time must be after Start Time!"
                 })
             
+
     def save(self, *args, **kwargs):
         if self.start_time and self.end_time:
             start = datetime.combine(date.today(), self.start_time)
             end = datetime.combine(date.today(), self.end_time)
 
-            self.duration_minutes  =int((end - start).total_seconds / 60)
+            diff = end - start
+
+            if diff.total_seconds() <= 0:
+                raise ValueError("end_time must be after start_time")
+
+            self.duration_minutes = int(diff.total_seconds() / 60)
 
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"Time Slot {self.id} - {self.duration_minutes} Minutes"
 
-class WorkingHour(models.Model):
+class WorkingHour(BaseModel):
     start_time = models.TimeField(
         verbose_name="Start Time"
     )
