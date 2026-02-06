@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Activation Failed</title>
+        <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    </head>
+    <body>
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+
+        <h2>Activation Failed</h2>
+
+        <p class="auth-footer">The activation link is invalid or expired.</p>
+
+        <p class="auth-footer">
+            You can try to
+            <a href="{% url 'login' %}">
+                login
+            </a>
+            again!
+        </p>
+
+        </div>
+    </div>
+
+    </body>
+</html>

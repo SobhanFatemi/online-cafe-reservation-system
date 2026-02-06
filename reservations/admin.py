@@ -60,8 +60,8 @@ class ReservationAdmin(BaseAdmin):
 
     @admin.action(description="Cancel selected reservations")
     def cancel_reservation(self, request, queryset):
-        queryset.update(status=Status.CANCELLED)
-        self.message_user(request, "Reservation or Reservations are in Cancelled status now!", messages.SUCCESS)
+        queryset.update(status=Status.CANCELED)
+        self.message_user(request, "Reservation or Reservations are in Canceled status now!", messages.SUCCESS)
 
     @admin.action(description="Compelete selected reservations")
     def compelete_reservation(self, request, queryset):

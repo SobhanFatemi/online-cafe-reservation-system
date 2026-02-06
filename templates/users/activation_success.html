@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Activated</title>
+        <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    </head>
+    <body>
+
+        <div class="auth-wrapper">
+            <div class="auth-card">
+
+            <h2>Account Activated</h2>
+
+            <p class="auth-footer">Welcome {{ username }} — your account is active now!</p>
+            
+            <p class="auth-footer">
+                You can
+                <a href="{% url 'login' %}">
+                    login
+                </a>
+                to your account now!
+            </p>
+
+            </div>
+        </div>
+
+    </body>
+</html>

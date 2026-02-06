@@ -13,13 +13,23 @@
 
         <form method="post">
             {% csrf_token %}
-            {{ form.non_field_errors }}
 
             {% for field in form %}
                 <label>{{ field.label }}</label>
                 {{ field }}
-                {{ field.errors }}
+
+                {% if field.errors %}
+                    <div class="field-error">
+                        {{ field.errors.0 }}
+                    </div>
+                {% endif %}
             {% endfor %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
 
             <button class="auth-btn" type="submit">
                 Sign Up

@@ -11,7 +11,7 @@ from .choices import Rating, Status, AttendanceStatus
 from seating.models import WorkingHour
 from seating.choices import DayofWeek
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
 User = get_user_model()
 
@@ -53,6 +53,12 @@ class Reservation(BaseModel):
         verbose_name="Number of People",
     )
 
+    notes = models.TextField(
+        max_length=256,
+        verbose_name="Notes",
+        blank=True
+    )
+
     total_price = models.DecimalField(
         editable=False,
         max_digits=10,
@@ -85,13 +91,47 @@ class Reservation(BaseModel):
         self.total_price = self.calculate_total_price()
         self.save(update_fields=["total_price"])
 
+    def get_start_datetime(self):
+        return datetime.combine(
+            self.date,
+            self.time_slot.start_time,
+        )
+
+    def is_finished(self):
+        if not self.date or not self.time_slot:
+            return False
+        
+        start_dt = self.get_start_datetime()
+
+        end_dt = start_dt + timedelta(minutes=self.time_slot.duration_minutes)
+
+        return timezone.now() > timezone.make_aware(end_dt)
+    
+    def can_cancel(self):
+        return timezone.make_aware(self.get_start_datetime()) - timezone.now() > timedelta(hours=2)
+
     def clean(self):
         super().clean()
+
+        if self.time_slot:
+            d = self.time_slot.duration_minutes
+
+            if d < 30 or d > 180:
+                raise ValidationError({
+                    "time_slot": "Reservation duration must be between 30 minutes and 3 hours!"
+                })
+        
+        if self.status == Status.CANCELED and not self.can_cancel():
+            raise ValidationError({
+                "status": "Reservation cannot be canceled less tha 2 hours before start!"
+            })
 
         active_statuses = [
             Status.PENDING,
             Status.CONFIRMED,
         ]
+
+        BUFFER = timedelta(minutes=15)
 
         conflict = Reservation.objects.filter(
             time_slot__table=self.time_slot.table,
@@ -143,6 +183,8 @@ class Reservation(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        if self.is_finished() and self.status not in [Status.COMPELETED, Status.CANCELED]:
+            self.status = Status.COMPELETED
         super().save(*args, **kwargs)
 
         new_total = self.calculate_total_price()
