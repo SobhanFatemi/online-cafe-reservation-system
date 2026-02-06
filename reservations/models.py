@@ -8,6 +8,10 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 from .choices import Rating, Status, AttendanceStatus
+from seating.models import WorkingHour
+from seating.choices import DayofWeek
+from django.utils import timezone
+from datetime import datetime
 
 User = get_user_model()
 
@@ -19,7 +23,7 @@ class Reservation(BaseModel):
         related_name="reservations"
     )
 
-    time_slot = models.OneToOneField(
+    time_slot = models.ForeignKey(
         TimeSlot,
         verbose_name="Time Slot",
         on_delete=models.CASCADE,
@@ -81,10 +85,51 @@ class Reservation(BaseModel):
         self.total_price = self.calculate_total_price()
         self.save(update_fields=["total_price"])
 
-
     def clean(self):
         super().clean()
 
+        active_statuses = [
+            Status.PENDING,
+            Status.CONFIRMED,
+        ]
+
+        conflict = Reservation.objects.filter(
+            time_slot__table=self.time_slot.table,
+            date=self.date,
+            time_slot=self.time_slot,
+            status__in=active_statuses,
+        ).exclude(pk=self.pk)
+
+        if conflict.exists():
+            raise ValidationError({
+                    "time_slot": "This table is already booked at that time slot!"
+                })
+
+        weekday = self.date.weekday()
+
+        weekday_map = {
+            0: DayofWeek.MONDAY,
+            1: DayofWeek.TUESDAY,
+            2: DayofWeek.WEDNESDAY,
+            3: DayofWeek.THURSDAY,
+            4: DayofWeek.FRIDAY,
+            5: DayofWeek.SATURDAY,
+            6: DayofWeek.SUNDAY,
+        }
+        day_value = weekday_map[weekday]
+
+        working = WorkingHour.objects.filter(day_of_week=day_value).first()
+
+        if not working:
+            raise ValidationError({
+                    "date": "Cafe is closed in that day!"
+                })
+        else:
+            if self.time_slot.start_time < working.start_time or self.time_slot.start_time > working.end_time:
+                raise ValidationError({
+                    "time_slot": "Outside working hours!"
+                })
+        
         if self.time_slot.table and self.number_of_people:
             if self.number_of_people > self.time_slot.table.capacity:
                 raise ValidationError({
