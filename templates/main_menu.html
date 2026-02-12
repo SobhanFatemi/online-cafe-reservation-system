@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Main Menu{% endblock %}
+
+{% block content %}
+<div class="menu-container">
+    <div class="menu-card">
+        
+        {% if user.is_authenticated %}
+            <h2 class="menu-title">Cafe Main Menu</h2>
+
+            <a href="{% url 'make_reservation' %}" class="home-btn">
+                Make Reservation
+            </a>
+
+            <a href="{% url 'my_reservations' %}" class="home-btn">
+                My Reservations
+            </a>
+
+            <a href="{% url 'menu_list' %}" class="home-btn">
+                View Menu
+            </a>
+
+            {% if user.is_staff %}
+                <hr class="divider">
+
+                <form method="post" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="home-btn secondary">
+                        Admin Panel
+                    </button>
+                </form>
+            {% endif %}
+
+        {% else %}
+
+            <h2 class="menu-title">Welcome Back!</h2>
+
+            <a href="{% url 'login' %}" class="home-btn">
+                Login
+            </a>
+
+            <a href="{% url 'signup' %}" class="home-btn secondary">
+                Sign Up
+            </a>
+
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #ffffff;
+    height: 100vh;
+    color: #2C2C2C;
+}
+
+.menu-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-card {
+    width: 420px;
+    padding: 50px 40px;
+    border-radius: 18px;
+    background: #FAF6F1;
+    box-shadow: 0 20px 40px rgba(111, 78, 55, 0.08);
+    border: 1px solid #E8E2DA;
+    text-align: center;
+    transition: 0.3s ease;
+}
+
+.menu-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 35px;
+    color: #6F4E37;
+}
+
+.home-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #6F4E37;
+    color: white;
+}
+
+.home-btn:hover {
+    background: #5A3E2B;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(111, 78, 55, 0.15);
+}
+
+.home-btn.secondary {
+    background: #EFE7DF;
+    color: #2C2C2C;
+}
+
+.home-btn.secondary:hover {
+    background: #E3D7CC;
+}
+
+.home-btn.danger {
+    background: #C2410C;
+    color: white;
+}
+
+.home-btn.danger:hover {
+    background: #9A3412;
+}
+
+.divider {
+    margin: 25px 0;
+    border: none;
+    height: 1px;
+    background: #E8E2DA;
+}
+
+.navbar {
+    background-color: #FAF6F1;
+    padding: 15px 0;
+    border-bottom: 2px solid #E8E2DA;
+}
+
+.nav-inner {
+    width: 100%;
+    justify-content: center;
+    margin: auto;
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.nav-inner a {
+    color: #6F4E37;
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: 0.2s ease;
+}
+
+.nav-inner a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 0%;
+    height: 2px;
+    background-color: #D97706;
+    transition: 0.3s ease;
+}
+
+.nav-inner a:hover {
+    color: #D97706;
+}
+
+.nav-inner a:hover::after {
+    width: 100%;
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    color: #C2410C;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.logout-btn:hover {
+    color: #9A3412;
+}

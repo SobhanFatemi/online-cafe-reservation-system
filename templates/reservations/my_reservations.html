@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Main Menu{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/reservation.css' %}">
+{% endblock %}
+
+{% block content %}
+
+    <div class="reservation-wrapper">
+
+        <div class="reservation-header">
+            <h2>My Reservations</h2>
+            <a href="{% url 'make_reservation' %}" class="btn">
+                + New Reservation
+            </a>
+        </div>
+
+        <div class="reservation-grid">
+            {% for reservation in reservations %}
+                <div class="reservation-card">
+
+                    <h3>Reservation #{{ reservation.id }}</h3>
+
+                    <p><strong>Date:</strong> {{ reservation.date }}</p>
+
+                    <p>
+                        <strong>Time:</strong>
+                        {{ reservation.time_slot.start_time }}
+                        -
+                        {{ reservation.time_slot.end_time }}
+                    </p>
+
+                    <p>
+                        <strong>Table:</strong>
+                        {{ reservation.time_slot.table }}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="status-label status-{{ reservation.status }}">
+                            {{ reservation.get_status_display }}
+                        </span>
+                    </p>
+
+                    <a href="{% url 'reservation_detail' reservation.pk %}" class="btn">
+                        View Details
+                    </a>
+
+                </div>
+            {% empty %}
+                <p>You have no reservations yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

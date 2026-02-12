@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Make Reservation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reservation.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="reservation-wrapper">
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message-box">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="reservation-card">
+        <h3>Select Date</h3>
+
+        <form method="get">
+            <input type="date"
+                   name="date"
+                   value="{{ request.GET.date }}"
+                   required>
+            <button class="btn">Check Availability</button>
+        </form>
+
+        {% if form.errors.date %}
+            <p class="error-text">{{ form.errors.date }}</p>
+        {% endif %}
+    </div>
+
+    {% if request.GET.date and table_data %}
+        <div class="reservation-grid">
+
+            {% for item in table_data %}
+                <div class="reservation-card {% if not item.is_available %}disabled{% endif %}">
+                    
+                    <h3>{{ item.table }}</h3>
+                    <p>Capacity: {{ item.table.capacity }}</p>
+
+                    {% if item.is_available %}
+                        <ul class="slot-list">
+                            {% for s in item.slots %}
+                                <li>
+                                    {% if s.is_reserved %}
+                                        <span class="slot disabled">
+                                            {{ s.slot.start_time }} - {{ s.slot.end_time }}
+                                        </span>
+                                    {% else %}
+                                        <a class="slot"
+                                        href="?date={{ request.GET.date }}&slot={{ s.slot.id }}">
+                                            {{ s.slot.start_time }} - {{ s.slot.end_time }}
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No available time slots</p>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+
+            {% if selected_slot %}
+            <div class="reservation-card complete-reservation">
+                <h3>Complete Reservation</h3>
+
+                <p>
+                    Selected Time:
+                    {{ selected_slot.start_time }} - 
+                    {{ selected_slot.end_time }}
+                </p>
+
+                <p>
+                    {{ selected_slot.table }}
+                </p>
+
+                <p>
+                    Price per person: ${{ price_per_person }}
+                </p>
+                <span id="price-per-person"
+                      data-price="{{ price_per_person }}"
+                      style="display: none;"></span>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="date" value="{{ request.GET.date }}">
+                    <input type="hidden" name="time_slot" value="{{ request.GET.slot }}">
+
+                    <label>Number of People:</label>
+                    <input type="number" id="people-input" name="number_of_people" min="1" required>
+                    {% if form.number_of_people.errors %}
+                        <div class="error-container">
+                            {{ form.number_of_people.errors.0 }}
+                        </div>
+                    {% endif %}
+
+                    <label>Notes:</label>
+                    <textarea name="notes" rows="3"></textarea>
+
+                    <p>
+                        Total: $<span id="total-price">0</span>
+                    </p>
+
+                    <button type="submit" class="btn">
+                        Confirm Reservation
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="error-container">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/reservation.js' %}"></script>
+{% endblock %}
