@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ food.name }}</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            direction: rtl;
+            margin: 20px;
+        }
+
+        .food-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .food-image img {
+            width: 350px;
+            border-radius: 8px;
+        }
+
+        .food-info {
+            max-width: 600px;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .rating {
+            color: #f39c12;
+            margin: 10px 0;
+        }
+
+        .section {
+            margin-top: 40px;
+        }
+
+        .comment {
+            border-bottom: 1px solid #ddd;
+            padding: 12px 0;
+        }
+
+        .reply {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-right: 3px solid #ccc;
+        }
+
+        .related-foods {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .related-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 180px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .related-item img {
+            width: 100%;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="food-container">
+    <div class="food-image">
+        {% if food.image %}
+            <img src="{{ food.image.url }}" alt="{{ food.name }}">
+        {% else %}
+            <img src="{% static 'images/no-image.png' %}" alt="no image">
+        {% endif %}
+    </div>
+
+    <div class="food-info">
+        <h1>{{ food.name }}</h1>
+
+        <p>{{ food.description|default:"Not has description" }}</p>
+
+        <p class="price">
+            price: {{ food.price }} تومان
+        </p>
+
+        <div class="rating">
+            ⭐ {{ food.avg_rating|default:0|floatformat:1 }}
+            ({{ food.rating_count }} rating)
+        </div>
+
+        <button data-food-id="{{ food.id }}">
+            افزودن به سبد خرید
+        </button>
+
+        <br><br>
+        <a href="{% url 'menu' %}">⬅ return bake the menu </a>
+    </div>
+</div>
+
+div class="section">
+    <h2>📝 comments users</h2>
+
+    {% if comments %}
+        {% for rf in comments %}
+            {% if rf.reservation.comment %}
+                <div class="comment">
+                    <strong>
+                        {{ rf.reservation.user.username }}
+                    </strong>
+
+                    <div class="rating">
+                        ⭐ {{ rf.reservation.comment.rating }} / 5
+                    </div>
+
+                    <p>{{ rf.reservation.comment.text }}</p>
+
+                    <small>
+                        {{ rf.reservation.comment.created_at|date:"Y/m/d H:i" }}
+                    </small>
+
+                    {% if rf.reservation.comment.reply %}
+                        <div class="reply">
+                            <strong>restoran sys:</strong>
+                            <p>{{ rf.reservation.comment.reply }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>not any comments submits for this item </p>
+    {% endif %}
+</div>
+
+
+<div class="section">
+    <h2>like foods</h2>
+
+    {% if related_foods %}
+        <div class="related-foods">
+            {% for item in related_foods %}
+                <div class="related-item">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    {% endif %}
+
+                    <h4>{{ item.name }}</h4>
+                    <p>{{ item.price }} تومان</p>
+
+                    <div class="rating">
+                        ⭐ {{ item.avg_rating|default:0|floatformat:1 }}
+                    </div>
+
+                    <a href="{% url 'food-detail' item.id %}">
+                        see details
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Not fount </p>
+    {% endif %}
+</div>
+
+</body>
+</html>
