@@ -1,38 +1,17 @@
-from django.shortcuts import render, get_object_or_404
-from django.db.models import Avg, Count
+from django.shortcuts import render
+from django.db.models import Avg, Prefetch
+from django.views.generic import ListView
 from .models import Category, FoodItem
 
+class MenuView(ListView):
+    model = Category
+    template_name = "menu/menu.html"
+    context_object_name = "categories"
 
-def food_detail(request, pk):
-    food = get_object_or_404(
-        FoodItem.objects.annotate(
-            avg_rating=Avg("reservation_foods__reservation__comment__rating"),
-            rating_count=Count("reservation_foods__reservation__comment"),
-        ),
-        pk=pk,
-        is_available=True,
-    )
-
-    comments = (
-        food.reservation_foods
-        .filter(reservation__comment__isnull=False)
-        .select_related("reservation")
-        .prefetch_related("reservation__comment")
-    )
-
-    related_foods = (
-        FoodItem.objects.filter(
-            category=food.category,
-            is_available=True,
-        )
-        .exclude(id=food.id)
-        .annotate(
+    def get_queryset(self):
+        food_qs = FoodItem.objects.annotate(
             avg_rating=Avg("reservation_foods__reservation__comment__rating")
-        )[:4]
-    )
-
-    return render(request, "menu/food_detail.html", {
-        "food": food,
-        "comments": comments,
-        "related_foods": related_foods,
-    })
+        )
+        return Category.objects.prefetch_related(
+            Prefetch("food_items", queryset=food_qs)
+        )

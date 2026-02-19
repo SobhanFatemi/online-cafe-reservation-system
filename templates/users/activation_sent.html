@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>Activation Email Sent</title>
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+
+    <h2>Check Your Email!</h2>
+
+    <p class="auth-footer">We sent you an activation link.</p>
+    <p class="auth-footer">Please verify your account before logging in.</p>
+
+    <p class="auth-footer">
+        You can
+        <a href="{% url 'login' %}">
+            login
+        </a>
+        to your account now!
+    </p>
+
+    </div>
+</div>
+
+</body>
+</html>

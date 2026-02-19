@@ -1,13 +1,8 @@
 {% load static %}
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-
     <title>Menu</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <meta name="csrf-token" content="{{ csrf_token }}">
-
     <link rel="stylesheet" href="{% static 'css/menu.css' %}">
 </head>
 
@@ -16,16 +11,16 @@
 <div class="menu-wrapper">
     <div class="menu-grid">
 
-        {% for category in categories %}
+    {% for category in categories %}
         <div class="category-card">
 
             <div class="category-header">
                 <h3 class="category-title">{{ category.name }}</h3>
 
                 {% if category.discount %}
-                <span class="category-discount">
-                    - {{ category.discount.amount }}% OFF
-                </span>
+                    <span class="category-discount">
+                        - {{ category.discount.amount }}% OFF
+                    </span>
                 {% endif %}
             </div>
 
@@ -38,17 +33,36 @@
                     <h4 class="food-name">{{ food.name }}</h4>
 
                     {% if food.image %}
-                        <img src="{{ food.image.url }}" class="food-image" alt="{{ food.name }}">
+                        <img src="{{ food.image.url }}" class="food-image">
                     {% endif %}
 
-                    <p class="price">
-                        Price:
-                        {% if food.discount or food.category.discount %}
-                            <span class="price-old">${{ food.price }}</span>
-                            <span class="price-new">${{ food.get_discounted_price }}</span>
-                        {% else %}
-                            <span class="price-new">${{ food.price }}</span>
-                        {% endif %}
+                    <p>
+                    Price:
+
+                    {% if food.discount and food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% + {{ food.category.discount.amount }}% OFF
+                        </span>
+
+                    {% elif food.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% OFF
+                        </span>
+
+                    {% elif food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.category.discount.amount }}% OFF
+                        </span>
+
+                    {% else %}
+                        <span class="price-new">${{ food.price }}</span>
+                    {% endif %}
                     </p>
 
                     <p class="rating">
@@ -59,104 +73,15 @@
                         {{ food.description }}
                     </p>
 
-                    <!-- Quantity Controller -->
-                    <div class="quantity-control" data-food-id="{{ food.id }}">
-                        <button class="decrease-btn" disabled>−</button>
-                        <span class="quantity">0</span>
-                        <button class="increase-btn">+</button>
-                    </div>
-
                 </div>
                 {% endif %}
             {% endfor %}
 
         </div>
-        {% endfor %}
+    {% endfor %}
 
     </div>
 </div>
-
-<!-- Hidden CSRF fallback (Django-safe) -->
-<form style="display:none;">
-    {% csrf_token %}
-</form>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    /* ==============================
-       CSRF HANDLING
-    ============================== */
-    function getCSRFToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta && meta.content !== 'NOTPROVIDED') {
-            return meta.content;
-        }
-        return document.querySelector('[name=csrfmiddlewaretoken]').value;
-    }
-
-    /* ==============================
-       AJAX REQUEST
-    ============================== */
-    function updateQuantity(url, control) {
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'X-Requested-With': 'XMLHttpRequest',
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Request failed');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const qtyEl = control.querySelector('.quantity');
-            const decBtn = control.querySelector('.decrease-btn');
-
-            qtyEl.textContent = data.quantity;
-
-            // Disable minus button if quantity is zero
-            decBtn.disabled = data.quantity === 0;
-
-            // Optional: update total price if exists
-            const totalPriceEl = document.getElementById('total-price');
-            if (totalPriceEl && data.total_price) {
-                totalPriceEl.textContent = data.total_price;
-            }
-        })
-        .catch(error => {
-            console.error('Quantity update error:', error);
-        });
-    }
-
-    /* ==============================
-       EVENT BINDINGS
-    ============================== */
-    document.querySelectorAll('.quantity-control').forEach(control => {
-        const foodId = control.dataset.foodId;
-
-        control.querySelector('.increase-btn')
-            .addEventListener('click', () => {
-                updateQuantity(
-                    `/reservation/food/increase/${foodId}/`,
-                    control
-                );
-            });
-
-        control.querySelector('.decrease-btn')
-            .addEventListener('click', () => {
-                updateQuantity(
-                    `/reservation/food/decrease/${foodId}/`,
-                    control
-                );
-            });
-    });
-
-});
-</script>
 
 </body>
 </html>

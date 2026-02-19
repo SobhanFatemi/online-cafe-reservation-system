@@ -5,6 +5,10 @@ body {
     background: #131313;
 }
 
+input:invalid {
+    border-color: #c62828;
+}
+
 .auth-wrapper {
     min-height: 100vh;
     display: flex;
@@ -70,4 +74,44 @@ body {
 
 .auth-footer a {
     text-decoration: none;
+}
+
+.field-error {
+    color: #c62828;
+    font-size: 13;
+    margin-top: -10px;
+    margin-bottom: 12px;
+}
+
+.form-error {
+    color: #c62828;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.resend-btn {
+    width: 100%;
+    padding: 10px;
+    border: None;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.resend-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.timer {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 6px;
+    color: #374151;
 }

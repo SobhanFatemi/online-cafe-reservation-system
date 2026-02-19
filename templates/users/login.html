@@ -8,30 +8,75 @@
 <body>
 
 <div class="auth-wrapper">
-    <div class="auth-card">
-        <h2>Login</h2>
+<div class="auth-card">
 
-        <form method="post">
-            {% csrf_token %}
-            {{ form.non_field_errors }}
+<h2>Login</h2>
 
-            {% for field in form %}
-                <label>{{ field.label }}</label>
-                {{ field }}
-                {{ field.errors }}
-            {% endfor %}
+<form method="post">
+{% csrf_token %}
 
-            <button class="auth-btn" type="submit">
-                Login
-            </button>
-        </form>
+{% for field in form %}
+    <label>{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+{% endfor %}
 
-        <div class="auth-footer">
-            No account yet?
-            <a href="{% url 'signup' %}">Sign up</a>
-        </div>
+{% if form.non_field_errors %}
+    <div class="form-error">
+        {{ form.non_field_errors.0 }}
     </div>
+{% endif %}
+
+<button class="auth-btn">Login</button>
+</form>
+
+{% if form.non_field_errors or activation_remaining > 0 %}
+<form method="post" action="{% url 'resend_activation' %}">
+    {% csrf_token %}
+    <input type="hidden" name="username" value="{{ form.username.value }}">
+    <button id="resendBtn" class="resend-btn" type="submit">
+        Resend activation email
+    </button>
+</form>
+
+<div id="timer" class="timer"></div>
+{% endif %}
+
+<div class="auth-footer">
+No account yet? <a href="{% url 'signup' %}">Sign up</a>
 </div>
+
+<div class="auth-footer">
+<a href="{% url 'password_reset' %}">Forgot password?</a>
+</div>
+
+</div>
+</div>
+
+<script>
+let remaining = Number("{{ activation_remaining|default:'0' }}")
+const btn = document.getElementById("resendBtn");
+const timer = document.getElementById("timer");
+
+function tick(){
+    if(!btn) return;
+
+    if(remaining <= 0){
+        btn.disabled = false;
+        btn.innerText="Resend activation email";
+        if(timer) timer.innerText="";
+        return;
+    }
+
+    btn.disabled = true;
+    if(timer) timer.innerText = "You can resend in " + remaining + "s";
+
+    remaining--;
+    setTimeout(tick, 1000);
+}
+
+tick();
+</script>
 
 </body>
 </html>

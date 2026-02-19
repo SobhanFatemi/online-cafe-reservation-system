@@ -8,6 +8,10 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 from .choices import Rating, Status, AttendanceStatus
+from seating.models import WorkingHour
+from seating.choices import DayofWeek
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 User = get_user_model()
 
@@ -19,7 +23,7 @@ class Reservation(BaseModel):
         related_name="reservations"
     )
 
-    time_slot = models.OneToOneField(
+    time_slot = models.ForeignKey(
         TimeSlot,
         verbose_name="Time Slot",
         on_delete=models.CASCADE,
@@ -47,6 +51,12 @@ class Reservation(BaseModel):
     number_of_people = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         verbose_name="Number of People",
+    )
+
+    notes = models.TextField(
+        max_length=256,
+        verbose_name="Notes",
+        blank=True
     )
 
     total_price = models.DecimalField(
@@ -81,10 +91,85 @@ class Reservation(BaseModel):
         self.total_price = self.calculate_total_price()
         self.save(update_fields=["total_price"])
 
+    def get_start_datetime(self):
+        return datetime.combine(
+            self.date,
+            self.time_slot.start_time,
+        )
+
+    def is_finished(self):
+        if not self.date or not self.time_slot:
+            return False
+        
+        start_dt = self.get_start_datetime()
+
+        end_dt = start_dt + timedelta(minutes=self.time_slot.duration_minutes)
+
+        return timezone.now() > timezone.make_aware(end_dt)
+    
+    def can_cancel(self):
+        return timezone.make_aware(self.get_start_datetime()) - timezone.now() > timedelta(hours=2)
 
     def clean(self):
         super().clean()
 
+        if self.time_slot:
+            d = self.time_slot.duration_minutes
+
+            if d < 30 or d > 180:
+                raise ValidationError({
+                    "time_slot": "Reservation duration must be between 30 minutes and 3 hours!"
+                })
+        
+        if self.status == Status.CANCELED and not self.can_cancel():
+            raise ValidationError({
+                "status": "Reservation cannot be canceled less tha 2 hours before start!"
+            })
+
+        active_statuses = [
+            Status.PENDING,
+            Status.CONFIRMED,
+        ]
+
+        BUFFER = timedelta(minutes=15)
+
+        conflict = Reservation.objects.filter(
+            time_slot__table=self.time_slot.table,
+            date=self.date,
+            time_slot=self.time_slot,
+            status__in=active_statuses,
+        ).exclude(pk=self.pk)
+
+        if conflict.exists():
+            raise ValidationError({
+                    "time_slot": "This table is already booked at that time slot!"
+                })
+
+        weekday = self.date.weekday()
+
+        weekday_map = {
+            0: DayofWeek.MONDAY,
+            1: DayofWeek.TUESDAY,
+            2: DayofWeek.WEDNESDAY,
+            3: DayofWeek.THURSDAY,
+            4: DayofWeek.FRIDAY,
+            5: DayofWeek.SATURDAY,
+            6: DayofWeek.SUNDAY,
+        }
+        day_value = weekday_map[weekday]
+
+        working = WorkingHour.objects.filter(day_of_week=day_value).first()
+
+        if not working:
+            raise ValidationError({
+                    "date": "Cafe is closed in that day!"
+                })
+        else:
+            if self.time_slot.start_time < working.start_time or self.time_slot.start_time > working.end_time:
+                raise ValidationError({
+                    "time_slot": "Outside working hours!"
+                })
+        
         if self.time_slot.table and self.number_of_people:
             if self.number_of_people > self.time_slot.table.capacity:
                 raise ValidationError({
@@ -98,6 +183,8 @@ class Reservation(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        if self.is_finished() and self.status not in [Status.COMPELETED, Status.CANCELED]:
+            self.status = Status.COMPELETED
         super().save(*args, **kwargs)
 
         new_total = self.calculate_total_price()
@@ -280,14 +367,3 @@ class Reply(BaseModel):
 
     def __str__(self):
         return f"{self.reply}"
-    
-
-
-    
-    
-    
-    
-    
-    
-    
-    
