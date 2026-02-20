@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservation {{ reservation.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            margin-right: 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+        }
+        .btn-primary { background-color: #007bff; }
+        .btn-danger { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <h1>Reservation #{{ reservation.id }}</h1>
+
+    <div class="section">
+        <h2>Basic Information</h2>
+        <p><strong>User:</strong> {{ reservation.user }}</p>
+        <p><strong>Date:</strong> {{ reservation.date }}</p>
+        <p><strong>Time Slot:</strong> {{ reservation.time_slot }}</p>
+        <p><strong>Status:</strong> {{ reservation.get_status_display }}</p>
+        <p><strong>Attendance:</strong> {{ reservation.get_attendance_status_display }}</p>
+        <p><strong>Number of People:</strong> {{ reservation.number_of_people }}</p>
+        <p><strong>Notes:</strong> {{ reservation.notes|default:"—" }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Table Information</h2>
+        <p><strong>Table:</strong> {{ reservation.time_slot.table.name }}</p>
+        <p><strong>Capacity:</strong> {{ reservation.time_slot.table.capacity }}</p>
+        <p><strong>Price per person:</strong> {{ reservation.time_slot.table.price_per_person }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Ordered Foods</h2>
+
+        {% if foods %}
+            <ul>
+                {% for item in foods %}
+                    <li>
+                        {{ item.food_item.name }} — {{ item.final_price }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No food items added yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Price Breakdown</h2>
+        <p><strong>Table Price:</strong> {{ table_price }}</p>
+        <p><strong>Food Total:</strong> {{ food_total }}</p>
+        <p><strong>Total Price:</strong> {{ total_price }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Status Info</h2>
+
+        {% if reservation.is_finished %}
+            <p>This reservation is finished.</p>
+        {% else %}
+            <p>This reservation is upcoming.</p>
+        {% endif %}
+
+        {% if reservation.can_cancel %}
+            <p>You can still cancel this reservation.</p>
+        {% else %}
+            <p>Cancellation window has passed.</p>
+        {% endif %}
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="section">
+        <h2>Actions</h2>
+
+        <a href="{% url 'menu' %}?reservation_id={{ reservation.id }}" class="btn btn-primary">
+            Add Food
+        </a>
+
+        {% if reservation.can_cancel %}
+            <a href="#" class="btn btn-danger">Cancel Reservation</a>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Comment</h2>
+
+        {% if comment %}
+            <p><strong>Rating:</strong> {{ comment.get_rating_display }}</p>
+            <p>{{ comment.text }}</p>
+
+        {% elif show_comment_form %}
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
+
+        {% else %}
+            <p>No comment yet.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>
