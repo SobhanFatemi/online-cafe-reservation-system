@@ -1,0 +1,48 @@
+<h1>Reservation Details #{{ res.id }}</h1>
+<hr>
+
+<h3>General Information:</h3>
+<ul>
+    <li><strong>Status:</strong> {{ res.status }}</li>
+    <li><strong>Table Number:</strong> {{ res.table_number }}</li>
+    <li><strong>Number of People:</strong> {{ res.number_of_people }}</li>
+    <li><strong>Total Price:</strong> {{ res.total_price }}</li>
+</ul>
+
+<hr>
+
+<h3>Ordered Foods:</h3>
+<ul>
+    {% for item in foods %}
+        <li>{{ item.food.name }} - Quantity: {{ item.quantity }}</li>
+    {% empty %}
+        <li>No food has been ordered for this reservation yet.</li>
+    {% endfor %}
+</ul>
+
+
+{% if res.status == 'COM' %}
+    
+    {% if not res.comment %}
+        <h3>Leave a Review</h3>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <label>Rating (1 to 5):</label><br>
+            <input type="number" name="rating" min="1" max="5" required><br><br>
+            
+            <label>Your Comment:</label><br>
+            <textarea name="comment" rows="4" cols="50" required></textarea><br><br>
+            
+            <button type="submit">Submit Review</button>
+        </form>
+    {% else %}
+        <h3>Your Review:</h3>
+        <p><strong>Rating:</strong> {{ res.rating }} / 5</p>
+        <p><strong>Comment:</strong> {{ res.comment }}</p>
+    {% endif %}
+
+{% endif %}
+
+<br><br>
+<a href="{% url 'reservations:reservation_lists' %}">Back to Reservations List</a>
