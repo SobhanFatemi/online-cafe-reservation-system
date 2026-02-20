@@ -1,16 +1,25 @@
-{% for item in reservations %}
-    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-        <h3>{{ title }}</h3>
-        <ul>
-    <li><strong>Status:</strong> {{ item.status }}</li>
-    <li><strong>Table Number:</strong> {{ item.table_number }}</li>
-    <li><strong>Number of People:</strong> {{ item.number_of_people }}</li>
-    <li><strong>Total Price:</strong> {{ item.total_price }}</li>
-</ul>
-        <a href="{% url 'reservations:reservation_detail' item.pk %}" style="color: blue;">
-            View Full Details 
-        </a>
-    </div>
-{% endfor %}
+{% load static %}
+<link rel="stylesheet" href="{% static '/css/reservations/status_list_style.css' %}">
 
-<a href="{% url 'reservations:reservation_lists' %}">last page</a>
+<div class="main-container">
+    <h2 style="text-align: center;">{{ title }} List</h2>
+
+    {% for item in reservations %}
+        <div class="res-item">
+            <h3>Reservation #{{ item.id }}</h3>
+            <ul>
+                <li><strong>Table:</strong> {{ item.table_number }}</li>
+                <li><strong>People:</strong> {{ item.number_of_people }}</li>
+                <li><strong>Total Price:</strong> {{ item.total_price }}</li>
+                <li><strong>Date:</strong> {{ item.date }}</li>
+            </ul>
+            <a href="{% url 'reservations:reservation_detail' item.pk %}" class="detail-link">
+                View Full Details 
+            </a>
+        </div>
+    {% empty %}
+        <p>No reservations found.</p>
+    {% endfor %}
+
+    <a href="{% url 'reservations:reservation_lists' %}" class="back-link">← Last Page</a>
+</div>

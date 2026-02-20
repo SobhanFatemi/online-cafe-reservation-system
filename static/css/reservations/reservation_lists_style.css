@@ -1,0 +1,46 @@
+
+
+.reservation-dashboard {
+    max-width: 450px;
+    margin: 60px auto;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.reservation-dashboard h2 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.status-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    text-decoration: none;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.status-btn:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+}
+
+.btn-pending { background-color: #f1c40f; }
+.btn-confirmed { background-color: #27ae60; }
+.btn-completed { background-color: #2980b9; }
+.btn-cancelled { background-color: #c0392b; }

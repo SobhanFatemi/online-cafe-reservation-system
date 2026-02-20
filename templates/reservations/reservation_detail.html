@@ -1,12 +1,13 @@
 <h1>Reservation Details #{{ res.id }}</h1>
 <hr>
 
-<h3>General Information:</h3>
+<h3> Casual Information:</h3>
 <ul>
-    <li><strong>Status:</strong> {{ res.status }}</li>
+    <li><strong>Status:</strong>{{ res.get_status_display}}</li>
     <li><strong>Table Number:</strong> {{ res.table_number }}</li>
     <li><strong>Number of People:</strong> {{ res.number_of_people }}</li>
     <li><strong>Total Price:</strong> {{ res.total_price }}</li>
+    <li><strong>Date:</strong> {{ res.date }}</li>
 </ul>
 
 <hr>

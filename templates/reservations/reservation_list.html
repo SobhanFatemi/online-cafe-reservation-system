@@ -1,6 +1,23 @@
-<h2>Reservation Lists</h2>
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reservation Lists</title>
+    <link rel="stylesheet" href="{% static '/css/reservations/reservation_lists_style.css' %}">
+</head>
+<body>
 
-<a href="{% url 'reservations:pending_list' %}">pending</a><br>
-<a href="{% url 'reservations:confirmed_list' %}">confirmed</a><br>
-<a href="{% url 'reservations:cancelled_list' %}">cancelled</a><br>
-<a href="{% url 'reservations:completed_list' %}">completed</a>
+<div class="reservation-dashboard">
+    <h2>Reservation Lists</h2>
+    
+    <div class="status-menu">
+        <a href="{% url 'reservations:pending_list' %}" class="status-btn btn-pending"> Pending</a>
+        <a href="{% url 'reservations:confirmed_list' %}" class="status-btn btn-confirmed">Confirmed</a>
+        <a href="{% url 'reservations:completed_list' %}" class="status-btn btn-completed"> Completed</a>
+        <a href="{% url 'reservations:cancelled_list' %}" class="status-btn btn-cancelled"> Cancelled</a>
+    </div>
+</div>
+
+</body>
+</html>
