@@ -28,7 +28,7 @@ def confirmed_list(request):
 
 @login_required
 def cancelled_list(request):
-    res = Reservation.objects.filter(user=request.user, status=Status.CANCELLED)
+    res = Reservation.objects.filter(user=request.user, status=Status.CANCELED)
     return render(request, 'reservations/status_list.html', {'reservations': res, 'title': 'cancelled'})
 
 @login_required
@@ -51,7 +51,7 @@ def reservation_detail(request, pk):
         
         new_comment = Comment.objects.create(
 
-            user= user, 
+            user= request.user,
             comment= comment_text, 
             rating=rating,
             reservation=reservation
