@@ -22,7 +22,6 @@ def generate_time_ranges(start_time, end_time):
 
     return slots
 
-
 def ensure_slots_exist_for_date(selected_date):
     if TimeSlot.objects.filter(date=selected_date).exists():
         return

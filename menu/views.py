@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db.models import Avg, Prefetch
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from .models import Category, FoodItem
 
 class MenuView(ListView):
@@ -15,3 +15,6 @@ class MenuView(ListView):
         return Category.objects.prefetch_related(
             Prefetch("food_items", queryset=food_qs)
         )
+
+class FoodDetailView(DetailView):
+    pass
