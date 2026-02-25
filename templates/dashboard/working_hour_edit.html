@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Edit Working Hour{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="working-form-header">
+        <h2 class="dashboard-title">
+            Edit {{ object.get_day_of_week_display }}
+        </h2>
+
+        <a href="{% url 'working_hours' %}" class="admin-btn secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="working-form-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="working-form-group">
+                <label>Start Time</label>
+                {{ form.start_time }}
+            </div>
+
+            <div class="working-form-group">
+                <label>End Time</label>
+                {{ form.end_time }}
+            </div>
+
+            <div class="working-form-actions">
+                <button type="submit" class="admin-btn">
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

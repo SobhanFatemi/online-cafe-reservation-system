@@ -118,5 +118,10 @@ class WorkingHour(BaseModel):
         choices=DayofWeek.choices,
     )
 
+    is_closed = models.BooleanField(
+        verbose_name="Is Closed",
+        default=False
+    )
+
     def __str__(self):
         return self.get_day_of_week_display()

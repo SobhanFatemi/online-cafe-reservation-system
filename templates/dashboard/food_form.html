@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+{% if object %}Edit Food{% else %}Add Food{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="food-form-header">
+        <h2 class="dashboard-title">
+            {% if object %}Edit Food{% else %}Add Food{% endif %}
+        </h2>
+
+        <a href="{% url 'food' %}" class="admin-btn secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="food-form-card">
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="food-form-grid">
+
+                <div class="form-group">
+                    <label>Name</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    {{ form.category }}
+                </div>
+
+                <div class="form-group">
+                    <label>Price</label>
+                    {{ form.price }}
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        {{ form.is_available }}
+                        Available
+                    </label>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Description</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Image</label>
+                    {{ form.image }}
+                </div>
+
+            </div>
+
+            <div class="food-form-actions">
+                <button type="submit" class="admin-btn">
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

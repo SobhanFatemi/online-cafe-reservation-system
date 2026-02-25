@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Reservation Details{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">
+        Reservation #{{ object.id }}
+    </h2>
+
+    <div class="reservation-detail-grid">
+
+        <div class="dashboard-card ordered-card">
+
+            <p><strong>User:</strong> {{ object.user }}</p>
+            <p><strong>Date:</strong> {{ object.date }}</p>
+            <p>
+                <strong>Time:</strong>
+                {{ object.time_slot.start_time }} -
+                {{ object.time_slot.end_time }}
+            </p>
+            <p><strong>Table:</strong> {{ object.time_slot.table }}</p>
+            <p><strong>Guests:</strong> {{ object.number_of_people }}</p>
+
+            <p>
+                <strong>Status:</strong>
+                <span class="status-badge status-{{ object.status|lower }}">
+                    {{ object.get_status_display }}
+                </span>
+            </p>
+
+            <p>
+                <strong>Attendance Status:</strong>
+                <span class="status-badge attendance-{{ object.attendance_status|lower }}">
+                    {{ object.get_attendance_status_display }}
+                </span>
+            </p>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <h4>Ordered Items</h4>
+
+            {% if object.reservation_foods.all %}
+                <ul class="reservation-items">
+                    {% for item in object.reservation_foods.all %}
+                        <li>
+                            <span>x{{ item.quantity }}</span>
+                            <span>{{ item.food_item.name }}</span>
+                            <span>${{ item.food_item.price }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <p class="reservation-total">
+                    <strong>Total:</strong>
+                    ${{ object.total_price }}
+                </p>
+
+            {% else %}
+                <p>No food items added.</p>
+
+                <p class="reservation-total">
+                    <strong>Total:</strong>
+                    ${{ object.total_price }}
+                </p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="dashboard-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="status-row">
+
+                <div>
+                    <label>Reservation Status</label>
+                    <select name="status">
+                        <option value="PEN" {% if object.status == "PEN" %}selected{% endif %}>Pending</option>
+                        <option value="CON" {% if object.status == "CON" %}selected{% endif %}>Confirmed</option>
+                        <option value="COM" {% if object.status == "COM" %}selected{% endif %}>Completed</option>
+                        <option value="CAN" {% if object.status == "CAN" %}selected{% endif %}>Canceled</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Customer Presence</label>
+                    <select name="attendance_status">
+                        <option value="ABS" {% if object.presence == "ABS" %}selected{% endif %}>Absent</option>
+                        <option value="PRE" {% if object.presence == "PRE" %}selected{% endif %}>Present</option>
+                        <option value="UNK" {% if object.presence == "UNK" %}selected{% endif %}>Unknown</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="slot-control-wrapper">
+                <button type="submit" class="admin-btn">
+                    Save Changes
+                </button>
+
+                <a href="{% url 'reservations' %}" class="admin-btn secondary">
+                    Back
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}s

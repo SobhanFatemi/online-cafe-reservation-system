@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+{% if object %}Edit Table{% else %}Add Table{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="table-form-header">
+        <h2 class="dashboard-title">
+            {% if object %}Edit Table{% else %}Add Table{% endif %}
+        </h2>
+
+        <a href="{% url 'tables' %}" class="admin-btn secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="table-form-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="table-form-grid">
+
+                <div class="form-group">
+                    <label>Table Number</label>
+                    {{ form.table_number }}
+                </div>
+
+                <div class="form-group">
+                    <label>Capacity</label>
+                    {{ form.capacity }}
+                </div>
+
+                <div class="form-group">
+                    <label>Price Per Person</label>
+                    {{ form.price_per_person }}
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        {{ form.is_active }}
+                        Active
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="table-form-actions">
+                <button type="submit" class="admin-btn">
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

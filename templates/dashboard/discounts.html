@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Discounts{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">Discounts</h2>
+
+    <a href="{% url 'discount_add' %}" class="admin-btn">
+        + Add Discount
+    </a>
+
+    <div class="dashboard-grid">
+
+        {% for discount in discounts %}
+        <div class="dashboard-card">
+            <h4>{{ discount.name }}</h4>
+
+            <p>
+                {% if discount.type == "FIX" %}
+                    ${{ discount.amount }}
+                {% else %}
+                    {{ discount.amount }}%
+                {% endif %}
+            </p>
+
+            <div class="slot-control-wrapper">
+                <a href="{% url 'discount_edit' discount.pk %}" class="admin-btn">
+                    Edit
+                </a>
+
+                <a href="{% url 'discount_delete' discount.pk %}" class="admin-btn secondary">
+                    Delete
+                </a>
+            </div>
+        </div>
+        {% empty %}
+            <div class="dashboard-card">
+                <p>No discounts created yet.</p>
+            </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

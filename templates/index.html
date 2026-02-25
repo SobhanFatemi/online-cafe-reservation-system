@@ -24,12 +24,9 @@
             {% if user.is_staff %}
                 <hr class="divider">
 
-                <form method="post" action="{% url 'admin_dashboard' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="home-btn secondary">
-                        Admin Panel
-                    </button>
-                </form>
+                <a href="{% url 'dashboard' %}" class="home-btn secondary">
+                    Admin Panel
+                </a>
             {% endif %}
 
         {% else %}

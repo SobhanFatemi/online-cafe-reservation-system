@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+{% if object %}Edit Discount{% else %}Add Discount{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="discount-form-header">
+        <h2 class="dashboard-title">
+            {% if object %}Edit{% else %}Add{% endif %} Discount
+        </h2>
+
+        <a href="{% url 'discounts' %}" class="admin-btn secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="discount-form-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="discount-form-group">
+                <label>Type</label>
+                {{ form.discount_type }}
+            </div>
+
+            <div class="discount-form-group">
+                <label>Amount</label>
+                {{ form.amount }}
+            </div>
+
+            <div class="discount-form-group">
+                <label>Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="discount-form-actions">
+                <button type="submit" class="admin-btn">
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

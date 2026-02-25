@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+{% if object %}Edit Category{% else %}Add Category{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="category-form-header">
+        <h2 class="dashboard-title">
+            {% if object %}Edit Category{% else %}Add Category{% endif %}
+        </h2>
+
+        <a href="{% url 'categories' %}" class="admin-btn secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="category-form-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="category-form-group">
+                <label>Name</label>
+                {{ form.name }}
+            </div>
+
+            {% if form.description %}
+            <div class="category-form-group">
+                <label>Description</label>
+                {{ form.description }}
+            </div>
+            {% endif %}
+
+            <div class="category-form-actions">
+                <button type="submit" class="admin-btn">
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}
