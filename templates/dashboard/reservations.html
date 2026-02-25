@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Reservations{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">All Reservations</h2>
+
+    <div class="dashboard-grid">
+
+        {% for reservation in reservations %}
+        <div class="dashboard-card">
+
+            <h4>Reservation #{{ reservation.id }}</h4>
+
+            <p><strong>User:</strong> {{ reservation.user }}</p>
+            <p><strong>Date:</strong> {{ reservation.date }}</p>
+            <p><strong>Time:</strong> {{ reservation.time_slot.start_time }} - {{ reservation.time_slot.end_time }}</p>
+            <p><strong>Table:</strong> {{ reservation.time_slot.table }}</p>
+
+            <p>
+                <strong>Status:</strong>
+                <span class="status-badge status-{{ reservation.status|lower }}">
+                    {{ reservation.get_status_display }}
+                </span>
+            </p>
+
+            <p>
+                <strong>Attendance Status:</strong>
+                <span class="status-badge attendance-{{ reservation.attendance_status|lower }}">
+                    {{ reservation.get_attendance_status_display }}
+                </span>
+            </p>
+
+            <p><strong>Total:</strong> ${{ reservation.total_price }}</p>
+
+            <a href="{% url 'admin_reservation_detail' reservation.pk %}" class="admin-btn">
+                View Details
+            </a>
+
+        </div>
+        {% empty %}
+            <p>No reservations found.</p>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

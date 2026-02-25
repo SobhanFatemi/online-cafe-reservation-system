@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+<div class="message-wrapper">
+    {% for message in messages %}
+        <div class="alert {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">Admin Control Panel</h2>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card stat-card">
+            <h4>Today's Reservations</h4>
+            <p>{{ today_reservations }}</p>
+        </div>
+
+        <div class="dashboard-card stat-card">
+            <h4>Pending</h4>
+            <p>{{ pending }}</p>
+        </div>
+
+        <div class="dashboard-card stat-card">
+            <h4>Confirmed</h4>
+            <p>{{ confirmed }}</p>
+        </div>
+
+        <div class="dashboard-card stat-card">
+            <h4>Completed</h4>
+            <p>{{ completed }}</p>
+        </div>
+
+        <div class="dashboard-card stat-card">
+            <h4>Canceled</h4>
+            <p>{{ canceled }}</p>
+        </div>
+
+    </div>
+
+    <h3 class="section-title">Reservation Management</h3>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+            <h4>All Reservations</h4>
+            <a href="{% url 'reservations' %}" class="admin-btn">
+                Manage Reservations
+            </a>
+        </div>
+
+    </div>
+
+
+    <h3 class="section-title">Menu Management</h3>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+            <h4>Food Items</h4>
+            <a href="{% url 'food' %}" class="admin-btn">
+                Manage Food
+            </a>
+            <a href="{% url 'food_add' %}" class="admin-btn secondary">
+                + Add Food
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Categories</h4>
+            <a href="{% url 'categories' %}" class="admin-btn">
+                Manage Categories
+            </a>
+            <a href="{% url 'category_add' %}" class="admin-btn secondary">
+                + Add Category
+            </a>
+        </div>
+
+    </div>
+
+
+    <h3 class="section-title">Seating & Time Management</h3>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+            <h4>Tables</h4>
+            <a href="{% url 'tables' %}" class="admin-btn">
+                Manage Tables
+            </a>
+            <a href="{% url 'table_add' %}" class="admin-btn secondary">
+                + Add Table
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Working Hours</h4>
+            <a href="{% url 'working_hours' %}" class="admin-btn">
+                Manage Working Hours
+            </a>
+        </div>
+
+    </div>
+
+
+    <h3 class="section-title">System & Settings</h3>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+            <h4>General Settings</h4>
+            <a href="{% url 'settings' %}" class="admin-btn">
+                Edit Settings
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Discount Management</h4>
+            <a href="{% url 'discounts' %}" class="admin-btn">
+                Manage Discounts
+            </a>
+        </div>
+
+    </div>
+
+    <h3 class="section-title">Slot Control</h3>
+
+    <div class="slot-control-wrapper">
+        <form method="post" action="{% url 'generate_slots' %}">
+            {% csrf_token %}
+            <button type="submit" class="action-btn generate-btn">
+                Generate Slots Based On Settings
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'clear_slots' %}">
+            {% csrf_token %}
+            <button type="submit" class="action-btn clear-btn">
+                Clear Future Slots
+            </button>
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

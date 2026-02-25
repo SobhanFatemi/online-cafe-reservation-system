@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Main Menu{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/reservation.css' %}">
+{% endblock %}
+
+{% block content %}
+
+    <div class="reservation-detail">
+        <div class="reservation-detail-box">
+
+            <h2>Reservation #{{ reservation.id }}</h2>
+
+            {% if can_cancel %}
+            <form method="post" class="cancel-form" action="{% url 'cancel_reservation' reservation.pk %}">
+                {% csrf_token %}
+                <button class="btn danger cancel-btn">Cancel Reservation</button>
+            </form>
+            {% endif %}
+
+            <p>
+                <strong>Status:</strong>
+                <span class="status-label status-{{ reservation.status }}">
+                    {{ reservation.get_status_display }}
+                </span>
+            </p>
+
+            <hr>
+
+            <p><strong>Date:</strong> {{ reservation.date }}</p>
+            <p><strong>Time:</strong> {{ reservation.time_slot.start_time }} - {{ reservation.time_slot.end_time }}</p>
+            <p><strong>Table:</strong> {{ reservation.time_slot.table }}</p>
+
+            <hr>
+
+            <h3>Ordered Items</h3>
+
+            <ul>
+                {% for item in reservation.reservation_foods.all %}
+                    <li>
+                        <span>
+                            {{ item.food_item.name }} × {{ item.quantity }}
+                        </span>
+                        <span>
+                            ${{ item.food_item.get_discounted_price|floatformat:2 }}
+                        </span>
+                    </li>
+                {% empty %}
+                    <li>
+                        <span>No food ordered.</span>
+                        <span>$0.00</span>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <hr>
+
+            <p>
+                <strong>Total:</strong>
+                ${{ reservation.total_price|floatformat:2 }}
+            </p>
+
+            {% if user.is_staff and reservation.status == 'CON' %}
+                <form method="post" action="{% url 'mark_attendance' reservation.pk %}">
+                    {% csrf_token %}
+                    <button class="btn" name="attendance" value="PRE">Mark Present</button>
+                    <button class="btn" name="attendance" value="ABS">Mark Absent</button>
+                </form>
+            {% endif %}
+
+            {% if reservation.status == 'PEN' %}
+                <a class="btn" href="{% url 'reservation_order' reservation.pk %}">
+                    Modify Order
+                </a>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock %}

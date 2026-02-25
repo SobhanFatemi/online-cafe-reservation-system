@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}General Settings{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="settings-header">
+        <h2 class="dashboard-title">General Settings</h2>
+    </div>
+
+    <div class="settings-card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="settings-grid">
+
+                <!-- Cancel Window -->
+                <div class="settings-group">
+                    <label>Cancel Window (hours)</label>
+                    {{ form.cancel_window_hours }}
+                </div>
+
+                <!-- Slot Duration -->
+                <div class="settings-group">
+                    <label>Slot Duration (minutes)</label>
+                    {{ form.slot_duration_minutes }}
+                </div>
+
+                <!-- Auto Generate -->
+                <div class="settings-group">
+                    <label>Auto Generate Days Ahead</label>
+                    {{ form.auto_generate_days_ahead }}
+                </div>
+
+                <!-- Allow User Cancel -->
+                <div class="settings-group checkbox-group">
+                    <label>
+                        {{ form.allow_user_cancel }}
+                        Allow Users to Cancel
+                    </label>
+                </div>
+
+                <!-- Allow Admin Late Cancel -->
+                <div class="settings-group checkbox-group">
+                    <label>
+                        {{ form.allow_admin_late_cancel }}
+                        Allow Admin Late Cancel
+                    </label>
+                </div>
+
+                <!-- Reservations Enabled -->
+                <div class="settings-group checkbox-group">
+                    <label>
+                        {{ form.reservations_enabled }}
+                        Enable Reservations
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="settings-actions">
+                <button type="submit" class="admin-btn">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

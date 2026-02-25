@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Table Management{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="table-header-row">
+        <h2 class="dashboard-title">Table Management</h2>
+        <a href="{% url 'table_add' %}" class="admin-btn">
+            + Add Table
+        </a>
+    </div>
+
+    <div class="table-grid">
+
+        {% for table in tables %}
+        <div class="table-card">
+
+            <div class="table-top">
+                <h4>{{ table }}</h4>
+
+                {% if table.is_active %}
+                    <span class="table-badge active">Active</span>
+                {% else %}
+                    <span class="table-badge inactive">Inactive</span>
+                {% endif %}
+            </div>
+
+            <div class="table-info">
+                <span class="table-capacity">
+                    Capacity: {{ table.capacity }}
+                </span>
+            </div>
+
+            <div class="table-actions">
+                <a href="{% url 'table_edit' table.pk %}" class="admin-btn secondary small">
+                    Edit
+                </a>
+
+                <a href="{% url 'table_delete' table.pk %}" class="admin-btn danger small">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+{% endblock %}
+
+{% block title %}Reservation Order{% endblock %}
+
+{% block content %}
+
+<div class="menu-wrapper">
+    <div class="menu-grid">
+
+    {% for category in categories %}
+        <div class="category-card">
+
+            <div class="category-header">
+                <h3 class="category-title">{{ category.name }}</h3>
+
+                {% if category.discount %}
+                    <span class="category-discount">
+                        - {{ category.discount.amount }}% OFF
+                    </span>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            {% for food in category.food_items.all %}
+                {% if food.is_available %}
+                <div class="food-item"
+                     data-id="{{ food.id }}"
+                     data-price="{{ food.get_discounted_price }}"
+                     data-name="{{ food.name }}">
+
+                    <h4 class="food-name">{{ food.name }}</h4>
+
+                    {% if food.image %}
+                        <img src="{{ food.image.url }}" class="food-image">
+                    {% endif %}
+
+                    <p>
+                    Price:
+
+                    {% if food.discount and food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% + {{ food.category.discount.amount }}% OFF
+                        </span>
+
+                    {% elif food.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.discount.amount }}% OFF
+                        </span>
+
+                    {% elif food.category.discount %}
+                        <span class="price-old">${{ food.price }}</span>
+                        <span class="price-new">${{ food.get_discounted_price }}</span>
+                        <span class="discount-label">
+                            - {{ food.category.discount.amount }}% OFF
+                        </span>
+
+                    {% else %}
+                        <span class="price-new">${{ food.price }}</span>
+                    {% endif %}
+                    </p>
+
+                    <p class="rating">
+                        ★ {{ food.avg_rating|default:"No ratings" }}
+                    </p>
+
+                    <p class="food-description">
+                        {{ food.description }}
+                    </p>
+
+                    <div class="quantity-control">
+                        <button class="minus">−</button>
+                        <span class="quantity">0</span>
+                        <button class="plus">+</button>
+                    </div>
+
+                </div>
+                {% endif %}
+            {% endfor %}
+
+        </div>
+    {% endfor %}
+
+    </div>
+
+    <div class="order-summary">
+        <h3>Order Summary</h3>
+        <ul id="summaryList"></ul>
+        <h3>Total: $<span id="totalPrice">0</span></h3>
+
+        {% if reservation.status == 'PEN' %}
+            <button id="submitOrder" class="submit-btn">
+                Submit Order
+            </button>
+        {% else %}
+            <button class="submit-btn" disabled>
+                Cannot Modify Reservation
+            </button>
+        {% endif %}
+    </div>
+
+</div>
+
+{{ existing_items|json_script:"existing-cart-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const existingCart = JSON.parse(
+    document.getElementById("existing-cart-data").textContent
+);
+
+const tablePrice = parseFloat("{{ reservation.table_price|default:0 }}");
+let cart = existingCart || {};
+
+function updateTotal() {
+    const summaryList = document.getElementById("summaryList");
+    summaryList.
+innerHTML = "";
+
+    let total = tablePrice;
+
+    for (let id in cart) {
+        let item = cart[id];
+        let subtotal = item.quantity * item.price;
+        total += subtotal;
+
+        let li = document.createElement("li");
+        li.innerHTML = `
+            <span>${item.name} × ${item.quantity}</span>
+            <span>$${subtotal.toFixed(2)}</span>
+        `;
+
+        summaryList.appendChild(li);
+    }
+
+    document.getElementById("totalPrice").innerText =
+        total.toFixed(2);
+}
+
+document.querySelectorAll(".food-item").forEach(item => {
+    let id = item.dataset.id;
+
+    if (cart[id]) {
+        item.querySelector(".quantity").innerText =
+            cart[id].quantity;
+    }
+});
+
+document.querySelectorAll(".plus").forEach(btn => {
+    btn.addEventListener("click", function () {
+        let item = this.closest(".food-item");
+        let id = item.dataset.id;
+        let price = parseFloat(item.dataset.price);
+        let name = item.dataset.name;
+
+        if (!cart[id]) {
+            cart[id] = { quantity: 0, price: price, name: name };
+        }
+
+        cart[id].quantity++;
+        item.querySelector(".quantity").innerText =
+            cart[id].quantity;
+
+        updateTotal();
+    });
+});
+
+document.querySelectorAll(".minus").forEach(btn => {
+    btn.addEventListener("click", function () {
+        let item = this.closest(".food-item");
+        let id = item.dataset.id;
+
+        if (cart[id] && cart[id].quantity > 0) {
+            cart[id].quantity--;
+
+            if (cart[id].quantity === 0) {
+                delete cart[id];
+                item.querySelector(".quantity").innerText = 0;
+            } else {
+                item.querySelector(".quantity").innerText =
+                    cart[id].quantity;
+            }
+
+            updateTotal();
+        }
+    });
+});
+
+const submitBtn = document.getElementById("submitOrder");
+
+if (submitBtn) {
+    submitBtn.addEventListener("click", function () {
+
+        let items = [];
+
+        for (let id in cart) {
+            items.push({
+                food_item_id: id,
+                quantity: cart[id].quantity
+            });
+        }
+
+        fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ items: items })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            alert("Order saved successfully!");
+            location.reload();
+        });
+    });
+}
+
+updateTotal();
+</script>
+{% endblock %}

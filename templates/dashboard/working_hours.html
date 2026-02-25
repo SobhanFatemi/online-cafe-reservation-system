@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Working Hours{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="working-header-row">
+        <h2 class="dashboard-title">Working Hours</h2>
+    </div>
+
+    <div class="working-grid">
+
+        {% for hour in working_hours %}
+        <div class="working-card">
+
+            <h4>{{ hour.get_day_of_week_display }}</h4>
+
+            <p class="working-time">
+                {{ hour.start_time }} — {{ hour.end_time }}
+            </p>
+
+            <div class="working-actions">
+                <a href="{% url 'working_hour_edit' hour.pk %}" class="admin-btn secondary small">
+                    Edit
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Delete Discount{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">Delete Food</h2>
+
+    <div class="dashboard-card">
+
+        <p>Are you sure you want to delete?</p>
+
+        <div class="slot-control-wrapper">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="action-btn clear-btn" style="margin-top: 12px;">
+                    Confirm Delete
+                </button>
+            </form>
+
+            <a href="{% url 'food' %}" class="admin-btn secondary">
+                Cancel
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

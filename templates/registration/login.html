@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+
+        <h2>Login</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-box {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+            {% endfor %}
+
+            <button class="auth-btn" type="submit">
+                Login
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            No account yet?
+            <a href="{% url 'users:signup' %}">Sign up</a>
+        </div>
+
+        <div class="auth-footer">
+            <a href="{% url 'users:password_reset' %}">
+                Forgot your password?
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login_cooldown.js' %}"></script>
+{% endblock %}

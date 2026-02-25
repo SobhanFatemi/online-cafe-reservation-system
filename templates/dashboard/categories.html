@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Category Management{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="category-header-row">
+        <h2 class="dashboard-title">Category Management</h2>
+        <a href="{% url 'category_add' %}" class="admin-btn">
+            + Add Category
+        </a>
+    </div>
+
+    <div class="category-admin-grid">
+
+        {% for category in categories %}
+        <div class="category-admin-card">
+
+            <h4>{{ category.name }}</h4>
+
+            <div class="category-admin-actions">
+                <a href="{% url 'category_edit' category.pk %}" class="admin-btn secondary small">
+                    Edit
+                </a>
+                <a href="{% url 'category_delete' category.pk %}" class="admin-btn danger small">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

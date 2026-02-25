@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Food Management{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="food-header-row">
+        <h2 class="dashboard-title">Food Management</h2>
+        <a href="{% url 'food_add' %}" class="admin-btn">
+            + Add Food
+        </a>
+    </div>
+
+    <div class="food-compact-grid">
+
+        {% for food in foods %}
+        <div class="food-compact-card">
+
+            {% if food.is_available %}
+                <span class="food-badge available">Available</span>
+            {% else %}
+                <span class="food-badge unavailable">Unavailable</span>
+            {% endif %}
+
+            <br><br>
+
+            {% if food.image %}
+                <div class="food-img-wrap">
+                    <img src="{{ food.image.url }}" alt="{{ food.name }}">
+                </div>
+            {% endif %}
+
+            <div class="food-compact-body">
+                <h4>{{ food.name }}</h4>
+                <p class="food-compact-category">{{ food.category }}</p>
+                <p class="food-compact-price">${{ food.price }}</p>
+            </div>
+
+            <div class="food-compact-actions">
+                <a href="{% url 'food_edit' food.pk %}" class="admin-btn secondary small">
+                    Edit
+                </a>
+                <a href="{% url 'food_delete' food.pk %}" class="admin-btn danger small">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

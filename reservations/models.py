@@ -66,6 +66,12 @@ class Reservation(BaseModel):
         auto_now=True,
     )
 
+    note = models.TextField(
+        verbose_name="Note",
+        blank=True,
+        null=True
+    )
+
     def calculate_total_price(self):
         food_total = (
             self.reservation_foods.aggregate(

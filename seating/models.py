@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from datetime import datetime, date
 from .choices import DayofWeek
+from django.utils import timezone
 
 class CafeTable(BaseModel):
     table_number = models.PositiveIntegerField(
@@ -25,7 +26,8 @@ class CafeTable(BaseModel):
     )
 
     is_active = models.BooleanField(
-        verbose_name="Is Active"
+        verbose_name="Is Active",
+        default=True,
     )
 
     created_at = models.DateTimeField(
@@ -42,55 +44,63 @@ class CafeTable(BaseModel):
         return f"Table {self.table_number}"
 
 class TimeSlot(BaseModel):
+    table = models.ForeignKey(
+        "CafeTable",
+        on_delete=models.CASCADE,
+        related_name="time_slots"
+    )
+
+    date = models.DateField(
+        verbose_name="Date",
+    )
+
     start_time = models.TimeField(
         verbose_name="Start Time"
     )
-
     end_time = models.TimeField(
         verbose_name="End Time"
     )
 
     duration_minutes = models.PositiveIntegerField(
-        verbose_name="Duration (In Minutes)",
-        editable=False,
+        editable=False
     )
 
-    table = models.ForeignKey(
-        CafeTable,
-        verbose_name="Table",
-        on_delete=models.CASCADE,
-        related_name="time_slots",
+    is_active = models.BooleanField(
+        verbose_name="Is Active",
+        default=True,
     )
+
+    note = models.CharField(
+        verbose_name="Note",
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        unique_together = ("table", "date", "start_time")
+        ordering = ["date", "start_time"]
 
     def clean(self):
         if self.start_time and self.end_time:
             start = datetime.combine(date.today(), self.start_time)
             end = datetime.combine(date.today(), self.end_time)
 
-            diff = end - start
-            if diff.total_seconds() <= 0:
+            if end <= start:
                 raise ValidationError({
-                   "end_time": "End Time must be after Start Time!"
+                    "end_time": "End time must be after start time."
                 })
-            
+
+            self.duration_minutes = int(
+                (end - start).total_seconds() / 60
+            )
 
     def save(self, *args, **kwargs):
-        if self.start_time and self.end_time:
-            start = datetime.combine(date.today(), self.start_time)
-            end = datetime.combine(date.today(), self.end_time)
-
-            diff = end - start
-
-            if diff.total_seconds() <= 0:
-                raise ValueError("end_time must be after start_time")
-
-            self.duration_minutes = int(diff.total_seconds() / 60)
-
+        self.full_clean()
         super().save(*args, **kwargs)
 
-
     def __str__(self):
-        return f"Time Slot {self.id} - {self.duration_minutes} Minutes"
+        return f"{self.start_time} - {self.end_time}"
 
 class WorkingHour(BaseModel):
     start_time = models.TimeField(
@@ -106,6 +116,11 @@ class WorkingHour(BaseModel):
         max_length=3,
         verbose_name="Day of Week",
         choices=DayofWeek.choices,
+    )
+
+    is_closed = models.BooleanField(
+        verbose_name="Is Closed",
+        default=False
     )
 
     def __str__(self):
