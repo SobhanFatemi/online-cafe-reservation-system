@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ food.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/menu.css' %}">
+<link rel="stylesheet" href="{% static 'css/food_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="menu-detail-wrapper">
+
+    <a href="{% url 'menu_list' %}" class="back-link">
+        ← Back to Menu
+    </a>
+
+    <div class="food-detail">
+
+        {% if food.image %}
+        <div class="food-detail-image">
+            <img src="{{ food.image.url }}" alt="{{ food.name }}">
+        </div>
+        {% endif %}
+
+        <div class="food-detail-info">
+
+            <h1 class="food-title">{{ food.name }}</h1>
+
+            {% if food.category %}
+                <p class="food-category">
+                    Category: {{ food.category.name }}
+                </p>
+            {% endif %}
+
+            <p class="food-price">
+                ${{ food.price }}
+            </p>
+
+            {% if food.avg_rating %}
+                <p class="food-rating">
+                    ★ {{ food.avg_rating|floatformat:1 }} / 5.0
+                </p>
+            {% else %}
+                <p class="food-rating" style="color:#ccc;">
+                    ★ No ratings yet
+                </p>
+            {% endif %}
+
+            {% if food.description %}
+                <div class="food-description">
+                    <h3>Description</h3>
+                    <p>{{ food.description|linebreaksbr }}</p>
+                </div>
+            {% endif %}
+
+            {% if food.is_available %}
+                <span class="food-badge available">Available</span>
+            {% else %}
+                <span class="food-badge unavailable">Unavailable</span>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+<div class="comments-wrapper">
+
+<h2 style="margin-top: 40px;">Customer Comments</h2>
+{% if comments %}
+    <ul class="comments-list">
+
+        {% for comment in comments %}
+        <li class="comment-item">
+
+            <div class="comment-left">
+
+                <span class="comment-username">
+                    {% if comment.user %}
+                        {{ comment.user.get_full_name|default:comment.user.username }}
+                    {% else %}
+                        Anonymous
+                    {% endif %}
+                </span>
+
+                {% if comment.rating %}
+                <span class="comment-rating">
+                    ★ {{ comment.rating|floatformat:1 }} / 5
+                </span>
+                {% endif %}
+
+                <span class="comment-body-inline">
+                    {{ comment.comment }}
+                </span>
+
+            </div>
+
+            <span class="comment-date">
+                {{ comment.created_at|date:"Y-m-d H:i" }}
+            </span>
+
+        </li>
+
+        {% if comment.replies %}
+            <div class="reply-item">
+
+                <div class="reply-header">
+                    <strong>
+                        {% if comment.replies.user %}
+                            {{ comment.replies.user.get_full_name|default:comment.replies.user.username }}
+                        {% else %}
+                            Staff
+                        {% endif %}
+                    </strong>
+
+                    <div class="reply-body">
+                        {{ comment.replies.reply }}
+                    </div>
+                    
+                </div>
+
+                <span class="reply-date">
+                    {{ comment.replies.created_at|date:"Y-m-d H:i" }}
+                </span>
+
+            </div>
+        {% endif %}
+
+        {% endfor %}
+
+    </ul>
+
+{% else %}
+    <p style="color:#555;">No comments yet.</p>
+{% endif %}
+
+</div>
+
+{% endblock %}

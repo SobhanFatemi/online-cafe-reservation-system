@@ -1,13 +1,16 @@
 from django.db import models
 from common.models import BaseModel
 from seating.models import CafeTable, TimeSlot
+from dashboard.models import CafeSetting
 from menu.models import FoodItem
 from django.core.validators import MinValueValidator
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from decimal import Decimal
 from .choices import Rating, Status, AttendanceStatus
+from datetime import datetime, timedelta
 
 User = get_user_model()
 
@@ -71,6 +74,57 @@ class Reservation(BaseModel):
         blank=True,
         null=True
     )
+
+    def can_user_comment(self):
+        if self.status != Status.COMPLETED:
+            return False
+
+        if self.attendance_status != AttendanceStatus.PRESENT:
+            return False
+
+        if Comment.objects.filter(reservation=self, user=self.user).exists():
+            return False
+
+        return True
+
+    def get_start_datetime(self):
+        return datetime.combine(
+            self.time_slot.date,
+            self.time_slot.start_time
+        ).replace(tzinfo=timezone.get_current_timezone())
+
+
+    def can_user_cancel(self):
+        settings = CafeSetting.load()
+
+        if not settings.allow_user_cancel:
+            return False
+
+        if self.status in ["CAN", "COM"]:
+            return False
+
+        now = timezone.now()
+        start_dt = self.get_start_datetime()
+
+        return now < start_dt
+
+
+    def can_admin_cancel(self):
+        settings = CafeSetting.load()
+
+
+        if not settings.allow_admin_late_cancel:
+            return False
+
+        if self.status in ["CAN", "COM"]:
+            return False
+
+        now = timezone.now()
+        start_dt = self.get_start_datetime()
+        
+        limit_time = start_dt - timedelta(hours=settings.cancel_window_hours)
+
+        return now < limit_time
 
     def calculate_total_price(self):
         food_total = (
@@ -195,17 +249,18 @@ class ReservationFood(BaseModel):
         return f"Reservation {self.reservation.id} - {self.quantity} {plural}"
 
 class Comment(BaseModel):
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         User,
         verbose_name="User",
         on_delete=models.CASCADE,
         related_name="comments"
     )
 
-    reservation = models.OneToOneField(
+    reservation = models.ForeignKey(
         Reservation,
         verbose_name="Reservation",
         on_delete=models.CASCADE,
+        related_name="comments"
     )
 
     comment = models.TextField(
@@ -229,14 +284,39 @@ class Comment(BaseModel):
         auto_now=True,
     )
 
+    class Meta:
+        unique_together = ("user", "reservation")
+
+    def can_user_delete(self, user):
+        if user != self.user:
+            return False
+        return not self.replies.exists()
+
+    def delete(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+
+        if user and not user.is_staff:
+            if self.replies.exists():
+                raise ValidationError(
+                    "You cannot delete this comment after admin reply."
+                )
+
+        super().delete(*args, **kwargs)
+
     def clean(self):
         super().clean()
+
+        if not self.reservation_id:
+            return
 
         if self.reservation and self.user:
             if self.reservation.user_id != self.user_id:
                 raise ValidationError({
                     "user": "User must match the reservation owner."
                 })
+        if self.reservation.status != Status.COMPLETED or self.reservation.attendance_status != AttendanceStatus.PRESENT:
+            raise ValidationError("You can only comment after attending a completed reservation.")
+        
     def __str__(self):
         return f"{self.comment}"
 
@@ -251,7 +331,7 @@ class Reply(BaseModel):
         related_name="replies"
     )
 
-    comment = models.OneToOneField(
+    comment = models.ForeignKey(
         Comment,
         verbose_name="Review",
         on_delete=models.CASCADE,
@@ -268,21 +348,32 @@ class Reply(BaseModel):
         auto_now_add=True,
     )
 
-    def clean(self):
+class Meta:
+    constraints = [
+        models.UniqueConstraint(
+            fields=["comment"],
+            name="one_reply_per_comment"
+        )
+    ]
 
-        if self.comment.user_id == self.user_id:
-            raise ValidationError({
-                "admin": "You cannot reply to your own review."
-            })
-        
-        if not self.user.is_staff:
-            raise ValidationError({
-                "admin": "Only admins can reply to reviews."
-            })
+def clean(self):
+    if not self.comment_id:
+        return
+
+    comment = Comment.objects.filter(id=self.comment_id).first()
+    if not comment:
+        return
+
+    if comment.user_id == self.user_id:
+        raise ValidationError("You cannot reply to your own review.")
+
+    if not self.user.is_staff:
+        raise ValidationError("Only admins can reply to reviews.")
+
         
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.reply}"
+        return f"Reply #{self.id}"

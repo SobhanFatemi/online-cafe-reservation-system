@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+    {% if is_edit %}Edit Time Slot{% else %}Create Time Slot{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+    <div class="food-header-row">
+        <h2 class="dashboard-title">
+            {% if is_edit %}Edit Time Slot{% else %}Create Time Slot{% endif %}
+        </h2>
+
+        <a href="{% url 'dashboard_time_slots' %}" class="admin-btn small">
+            ← Back to List
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="message-wrapper">
+        {% for message in messages %}
+        <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="dashboard-card">
+        <form method="post" class="dashboard-form">
+            {% csrf_token %}
+
+            <div class="form-row">
+
+                <div class="form-col">
+                    <label>Table</label>
+                    <select name="table" class="form-input" required>
+                        {% for t in tables %}
+                        <option value="{{ t.id }}" 
+                            {% if time_slot.table.id == t.id %}selected{% endif %}>
+                            {{ t }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-col">
+                    <label>Date</label>
+                    <input type="date" name="date" class="form-input" required 
+                           value="{{ time_slot.date|date:'Y-m-d' }}">
+                </div>
+
+                <div class="form-col">
+                    <label>Start Time</label>
+                    <input type="time" name="start_time" class="form-input" required 
+                           value="{{ time_slot.start_time }}">
+                </div>
+
+                <div class="form-col">
+                    <label>End Time</label>
+                    <input type="time" name="end_time" class="form-input" required 
+                           value="{{ time_slot.end_time }}">
+                </div>
+
+                <div class="form-col">
+                    <label>Note</label>
+                    <input type="text" class="form-input"
+                           value="{{ time_slot.note }}">
+                </div>
+
+                <div class="form-col">
+                    <label>Status</label>
+                    <select name="is_active" class="form-input">
+                        <option value="true" {% if time_slot.is_active %}selected{% endif %}>Active</option>
+                        <option value="false" {% if not time_slot.is_active %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="form-col center">
+                    <button class="admin-btn small" style="margin-top:18px;">
+                        {% if is_edit %}Save Changes{% else %}Create{% endif %}
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

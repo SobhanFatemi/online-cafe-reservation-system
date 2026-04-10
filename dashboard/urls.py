@@ -23,7 +23,15 @@ from .views import (
     DiscountUpdateView,
     DiscountDeleteView,
     CategoryDeleteView,
-    TableDeleteView
+    TableDeleteView,
+    AdminReservationCancelView,
+    TimeSlotListView,
+    TimeSlotEditView,
+    TimeSlotCreateView,
+    TimeSlotDeleteView,
+    CommentsListView,
+    ReplyToCommentView,
+    ReplyDeleteView
 )
 
 urlpatterns = [
@@ -32,8 +40,7 @@ urlpatterns = [
     path("reservations/<int:pk>/", AdminReservationDetailView.as_view(), name="admin_reservation_detail"),
     path("tables/", TableListView.as_view(), name="tables"),
     path("tables/add/", TableCreateView.as_view(), name="table_add"),
-    path(
-    "tables/<int:pk>/delete/", TableDeleteView.as_view(), name="table_delete"),
+    path("tables/<int:pk>/delete/", TableDeleteView.as_view(), name="table_delete"),
     path("tables/<int:pk>/edit/", TableUpdateView.as_view(), name="table_edit"),
     path("food/", FoodListView.as_view(), name="food"),
     path("food/add/", FoodCreateView.as_view(), name="food_add"),
@@ -41,8 +48,7 @@ urlpatterns = [
     path("food/<int:pk>/delete/", FoodDeleteView.as_view(), name="food_delete"),
     path("categories/", CategoryListView.as_view(), name="categories"),
     path("categories/add/", CategoryCreateView.as_view(), name="category_add"),
-    path(
-    "categories/<int:pk>/delete/", CategoryDeleteView.as_view(), name="category_delete",),
+    path("categories/<int:pk>/delete/", CategoryDeleteView.as_view(), name="category_delete",),
     path("categories/<int:pk>/edit/", CategoryUpdateView.as_view(), name="category_edit"),
     path("settings/", CafeSettingsView.as_view(), name="settings"),
     path("slots/generate/", GenerateSlotsView.as_view(), name="generate_slots"),
@@ -53,4 +59,12 @@ urlpatterns = [
     path("discounts/add/", DiscountCreateView.as_view(), name="discount_add"),
     path("discounts/<int:pk>/edit/", DiscountUpdateView.as_view(), name="discount_edit"),
     path("discounts/<int:pk>/delete/", DiscountDeleteView.as_view(), name="discount_delete"),
+    path("admin-panel/reservations/<int:pk>/cancel/", AdminReservationCancelView.as_view(), name="admin_reservation_cancel"),
+    path("time-slots/", TimeSlotListView.as_view(), name="dashboard_time_slots"),
+    path("time-slots/create/", TimeSlotCreateView.as_view(), name="dashboard_time_slot_create"),
+    path("time-slots/<int:pk>/edit/", TimeSlotEditView.as_view(), name="dashboard_time_slot_edit"),
+    path("time-slots/<int:pk>/delete/", TimeSlotDeleteView.as_view(), name="dashboard_time_slot_delete"),
+    path("comments/", CommentsListView.as_view(), name="dashboard-comments"),
+    path("comments/<int:comment_id>/reply/", ReplyToCommentView.as_view(), name="dashboard-comment-reply"),
+    path("comments/<int:reply_id>/reply/delete/", ReplyDeleteView.as_view(),name="dashboard-reply-delete"),
 ]

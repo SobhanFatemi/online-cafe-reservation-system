@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Reply to Comment{% endblock %}
+
+{% block content %}
+
+<div class="cafe-reply-wrapper">
+
+    <h3 class="cafe-reply-title">Reply to Comment</h3>
+
+    <div class="cafe-reply-card">
+        <div class="cafe-reply-card-body">
+
+            <p><strong>User:</strong> {{ comment.user.username }}</p>
+            <p><strong>Rating:</strong> {{ comment.rating }} ⭐</p>
+            <p><strong>Comment:</strong> {{ comment.comment }}</p>
+
+            <form method="POST" class="cafe-reply-form">
+                {% csrf_token %}
+
+                <div class="cafe-reply-field">
+                    {{ form.reply.label_tag }}
+                    {{ form.reply }}
+                </div>
+
+                <div class="cafe-reply-actions">
+                    <button class="cafe-reply-btn primary">Submit Reply</button>
+                    <a href="{% url 'dashboard-comments' %}"
+                       class="cafe-reply-btn secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

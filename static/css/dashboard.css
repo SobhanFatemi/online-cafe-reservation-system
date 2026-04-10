@@ -877,3 +877,292 @@ body {
     color: #084298;
     border: 1px solid #b6d4fe;
 }
+
+.reservation-controls {
+    margin-top: 60px;
+    padding: 40px 0;
+}
+
+.reservation-controls-inner {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 120px;
+    width: 100%;
+}
+
+.status-section,
+.attendance-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 350px;
+}
+
+.status-section h4,
+.attendance-section h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.status-actions,
+.attendance-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.status-actions form,
+.attendance-actions form {
+    margin: 0;
+}
+
+.status-btn,
+.attendance-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 110px;
+    transition: 0.2s ease;
+}
+
+.status-btn:hover,
+.attendance-btn:hover {
+    transform: translateY(-2px);
+}
+
+.status-btn.pending { border: solid 1px #c9a227; background: #dddddd7a; }
+.status-btn.confirmed { border: solid 1px #639968; background: #dddddd7a; }
+.status-btn.completed { border: solid 1px #3f5c7a; background: #dddddd7a; }
+.status-btn.canceled { border: solid 1px #8b3a3a; background: #dddddd7a; }
+
+.attendance-btn.present { border: solid 1px #639968; background: #dddddd7a;  }
+.attendance-btn.absent { border: solid 1px #8b3a3a; background: #dddddd7a; }
+.attendance-btn.unknown { border: solid 1px #3f5c7a; background: #dddddd7a; }
+
+.controls-footer {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+}
+
+.back-btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    background: #b08968;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: 0.2s ease;
+}
+
+.back-btn:hover {
+    opacity: 0.9;
+}
+
+.comments-wrapper {
+    max-width: 1100px;
+    margin: 40px auto;
+}
+
+.comments-title {
+    font-size: 28px;
+    color: #5a3e2b;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.comments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(92, 64, 51, 0.08);
+}
+
+.comments-table thead {
+    background: #6b4b36;
+    color: white;
+}
+
+.comments-table th,
+.comments-table td {
+    padding: 14px 16px;
+    font-size: 15px;
+    border-bottom: 1px solid #ece2d9;
+}
+
+.comments-table tbody tr:hover {
+    background: #f7f3ef;
+}
+
+.center {
+    text-align: center;
+}
+
+.reply-box {
+    background: #f8f3ee;
+    border-left: 4px solid #b08968;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.reply-time {
+    font-size: 12px;
+    color: #8a6d5c;
+    margin-top: 4px;
+}
+
+.cafe-btn {
+    display: inline-block;
+    background: #6b4b36;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.cafe-btn:hover {
+    background: #5a3e2b;
+}
+
+.cafe-btn.small {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.cafe-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.cafe-badge.warning {
+    background: #fce8b2;
+    color: #8a6d1f;
+}
+
+.cafe-badge.done {
+    background: #d4edda;
+    color: #2e7d32;
+}
+
+.no-data {
+    padding: 30px 0;
+    text-align: center;
+    font-size: 16px;
+    color: #8a6d5c;
+}
+.cafe-reply-wrapper {
+    max-width: 700px;
+    margin: 40px auto;
+}
+
+.cafe-reply-title {
+    font-size: 26px;
+    color: #5a3e2b;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.cafe-reply-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px 25px;
+    box-shadow: 0 8px 20px rgba(92, 64, 51, 0.08);
+}
+
+.cafe-reply-card-body p {
+    font-size: 15px;
+    color: #5a3e2b;
+    margin-bottom: 10px;
+}
+
+.cafe-reply-form {
+    margin-top: 25px;
+}
+
+.cafe-reply-field {
+    margin-bottom: 20px;
+}
+
+.cafe-reply-field label {
+    font-weight: 600;
+    color: #5a3e2b;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.cafe-reply-field textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #cbb7a2;
+    font-size: 14px;
+    resize: vertical;
+    background: #fffdfc;
+}
+
+.cafe-reply-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.cafe-reply-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.cafe-reply-btn.primary {
+    background: #6b4b36;
+    color: white;
+    border: none;
+}
+
+.cafe-reply-btn.primary:hover {
+    background: #5a3e2b;
+}
+
+.cafe-reply-btn.secondary {
+    background: #e6dcd2;
+    color: #4d3a2d;
+}
+
+.cafe-reply-btn.secondary:hover {
+    background: #d7c7b8;
+}
+
+button.cafe-btn {
+    background: #6b4b36;
+    color: #fff;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+button.cafe-btn:hover {
+    background: #5a3e2b;
+}

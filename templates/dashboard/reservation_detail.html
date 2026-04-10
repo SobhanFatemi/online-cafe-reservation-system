@@ -17,7 +17,6 @@
     <div class="reservation-detail-grid">
 
         <div class="dashboard-card ordered-card">
-
             <p><strong>User:</strong> {{ object.user }}</p>
             <p><strong>Date:</strong> {{ object.date }}</p>
             <p>
@@ -79,45 +78,83 @@
 
     <div class="dashboard-card">
 
-        <form method="post">
-            {% csrf_token %}
+        <div class="reservation-controls">
 
-            <div class="status-row">
+            <div class="reservation-controls-inner">
 
-                <div>
-                    <label>Reservation Status</label>
-                    <select name="status">
-                        <option value="PEN" {% if object.status == "PEN" %}selected{% endif %}>Pending</option>
-                        <option value="CON" {% if object.status == "CON" %}selected{% endif %}>Confirmed</option>
-                        <option value="COM" {% if object.status == "COM" %}selected{% endif %}>Completed</option>
-                        <option value="CAN" {% if object.status == "CAN" %}selected{% endif %}>Canceled</option>
-                    </select>
+                <div class="status-section">
+                    <h4>Status</h4>
+
+                    <div class="status-actions">
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="PEN">
+                            <button type="submit" class="status-btn pending">Pending</button>
+                        </form>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="CON">
+                            <button type="submit" class="status-btn confirmed">Confirmed</button>
+                        </form>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="COM">
+                            <button type="submit" class="status-btn completed">Completed</button>
+                        </form>
+
+                        {% if can_admin_cancel %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="CAN">
+                            <button type="submit" class="status-btn canceled">Cancel</button>
+                        </form>
+                        {% endif %}
+
+                    </div>
                 </div>
 
-                <div>
-                    <label>Customer Presence</label>
-                    <select name="attendance_status">
-                        <option value="ABS" {% if object.presence == "ABS" %}selected{% endif %}>Absent</option>
-                        <option value="PRE" {% if object.presence == "PRE" %}selected{% endif %}>Present</option>
-                        <option value="UNK" {% if object.presence == "UNK" %}selected{% endif %}>Unknown</option>
-                    </select>
+
+                <div class="attendance-section">
+                    <h4>Attendance</h4>
+
+                    <div class="attendance-actions">
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="attendance_status" value="PRE">
+                            <button type="submit" class="attendance-btn present">Present</button>
+                        </form>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="attendance_status" value="ABS">
+                            <button type="submit" class="attendance-btn absent">Absent</button>
+                        </form>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="attendance_status" value="UNK">
+                            <button type="submit" class="attendance-btn unknown">Unknown</button>
+                        </form>
+
+                    </div>
                 </div>
 
             </div>
 
-            <div class="slot-control-wrapper">
-                <button type="submit" class="admin-btn">
-                    Save Changes
-                </button>
-
-                <a href="{% url 'reservations' %}" class="admin-btn secondary">
-                    Back
-                </a>
+            <div class="controls-footer">
+                <a href="{% url 'reservations' %}" class="back-btn">Back</a>
             </div>
 
+        </div>
+
+    </div>
         </form>
 
     </div>
 
 </div>
-{% endblock %}s
+{% endblock %}

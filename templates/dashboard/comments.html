@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}
+Comments & Reviews
+{% endblock %}
+
+{% block content %}
+<div class="comments-wrapper">
+
+    <h2 class="comments-title">Comments & Reviews</h2>
+
+    <table class="comments-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Reservation</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Reply</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for item in comments %}
+            {% with reply=item.replies.first %}
+            <tr>
+                <td class="center">{{ item.user.username }}</td>
+
+                <td class="center">#{{ item.reservation.id }}</td>
+
+                <td class="center">{{ item.rating }} ⭐</td>
+
+                <td>{{ item.comment }}</td>
+
+                <td class="center">
+                    {% if reply %}
+                        <div class="reply-box">
+                            <strong>Admin:</strong>
+                            {{ reply.reply }}
+
+                            <div class="reply-time">
+                                {{ reply.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <span class="cafe-badge warning">No reply</span>
+                    {% endif %}
+                </td>
+
+                <td class="center">
+                    {% if reply %}
+                        <a href="{% url 'dashboard-comment-reply' item.id %}"
+                           class="cafe-btn small">
+                            Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'dashboard-reply-delete' reply.id %}"
+                              style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="cafe-btn small"
+                                    onclick="return confirm('Delete this reply?');">
+                                Delete
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'dashboard-comment-reply' item.id %}"
+                           class="cafe-btn small">
+                            Reply
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endwith %}
+        {% empty %}
+            <tr>
+                <td colspan="6" class="no-data">
+                    No comments found.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

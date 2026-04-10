@@ -11,12 +11,22 @@
 
 <div class="reservation-wrapper">
 
+    {% if form.non_field_errors %}
+        <div class="error-container">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        <br>
+    {% endif %}
+
     {% if messages %}
         <div class="messages">
             {% for message in messages %}
                 <div class="message-box">
                     {{ message }}
                 </div>
+                <br>
             {% endfor %}
         </div>
     {% endif %}
@@ -119,14 +129,6 @@
             </div>
             {% endif %}
 
-        </div>
-    {% endif %}
-
-    {% if form.non_field_errors %}
-        <div class="error-container">
-            {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-            {% endfor %}
         </div>
     {% endif %}
 

@@ -70,7 +70,11 @@
                     </p>
 
                     <p class="rating">
-                        ★ {{ food.avg_rating|default:"No ratings" }}
+                        {% if food.avg_rating %}
+                            ★ {{ food.avg_rating|floatformat:1 }}
+                        {% else %}
+                            ★ No ratings yet
+                        {% endif %}
                     </p>
 
                     <p class="food-description">
@@ -125,8 +129,7 @@ let cart = existingCart || {};
 
 function updateTotal() {
     const summaryList = document.getElementById("summaryList");
-    summaryList.
-innerHTML = "";
+    summaryList.innerHTML = "";
 
     let total = tablePrice;
 

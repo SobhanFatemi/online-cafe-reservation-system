@@ -9,7 +9,6 @@ class ReservationFoodInline(admin.TabularInline):
     exclude = "is_deleted",
     autocomplete_fields = ("food_item",)
 
-
 @admin.register(Reservation)
 class ReservationAdmin(BaseAdmin):
     list_display = (
@@ -48,7 +47,7 @@ class ReservationAdmin(BaseAdmin):
     actions = (
         "confirm_reservation",
         "cancel_reservation",
-        "compelete_reservation",
+        "complete_reservation",
         "absent_reservation",
         "present_reservation",
     )
@@ -63,10 +62,10 @@ class ReservationAdmin(BaseAdmin):
         queryset.update(status=Status.CANCELLED)
         self.message_user(request, "Reservation or Reservations are in Cancelled status now!", messages.SUCCESS)
 
-    @admin.action(description="Compelete selected reservations")
-    def compelete_reservation(self, request, queryset):
-        queryset.update(status=Status.COMPELETED)
-        self.message_user(request, "Reservation or Reservations are in Compeleted status now!", messages.SUCCESS)
+    @admin.action(description="Complete selected reservations")
+    def complete_reservation(self, request, queryset):
+        queryset.update(status=Status.COMPLETED)
+        self.message_user(request, "Reservation or Reservations are in Completed status now!", messages.SUCCESS)
 
     
     @admin.action(description="Absent selected reservations")
@@ -78,9 +77,7 @@ class ReservationAdmin(BaseAdmin):
     def present_reservation(self, request, queryset):
         queryset.update(attendance_status=AttendanceStatus.PRESENT)
         self.message_user(request, "Reservation's attendance status is Present now!", messages.SUCCESS)
-
-        
-
+      
 @admin.register(Comment)
 class CommentAdmin(BaseAdmin):
     list_display = (
