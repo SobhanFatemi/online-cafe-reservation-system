@@ -87,7 +87,7 @@
 
                 {% if comment.rating %}
                 <span class="comment-rating">
-                    ★ {{ comment.rating|floatformat:1 }} / 5
+                    ★ {{ comment.rating|floatformat:1 }} / 5.0
                 </span>
                 {% endif %}
 
@@ -103,30 +103,31 @@
 
         </li>
 
-        {% if comment.replies %}
-            <div class="reply-item">
+        {% with reply=comment.replies.first %}
+            {% if reply %}
+                <div class="reply-item">
 
-                <div class="reply-header">
-                    <strong>
-                        {% if comment.replies.user %}
-                            {{ comment.replies.user.get_full_name|default:comment.replies.user.username }}
-                        {% else %}
-                            Staff
-                        {% endif %}
-                    </strong>
+                    <div class="reply-header">
+                        <strong>
+                            {% if reply.user %}
+                                {{ reply.user.get_full_name|default:reply.user.username }}
+                            {% else %}
+                                Staff
+                            {% endif %}
+                        </strong>
 
-                    <div class="reply-body">
-                        {{ comment.replies.reply }}
+                        <div class="reply-body">
+                            {{ reply.reply }}
+                        </div>
                     </div>
-                    
+
+                    <span class="reply-date">
+                        {{ reply.created_at|date:"Y-m-d H:i" }}
+                    </span>
+
                 </div>
-
-                <span class="reply-date">
-                    {{ comment.replies.created_at|date:"Y-m-d H:i" }}
-                </span>
-
-            </div>
-        {% endif %}
+            {% endif %}
+        {% endwith %}
 
         {% endfor %}
 

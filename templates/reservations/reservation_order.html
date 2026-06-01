@@ -34,10 +34,14 @@
                      data-price="{{ food.get_discounted_price }}"
                      data-name="{{ food.name }}">
 
-                    <h4 class="food-name">{{ food.name }}</h4>
+                    <a href="{% url 'food_detail' food.pk %}" class="link-clean">
+                        <h4 class="food-name">{{ food.name }}</h4>
+                    </a>
 
                     {% if food.image %}
-                        <img src="{{ food.image.url }}" class="food-image">
+                        <a href="{% url 'food_detail' food.pk %}"  class="link-clean">
+                            <img src="{{ food.image.url }}" class="food-image">
+                        </a>
                     {% endif %}
 
                     <p>
@@ -73,7 +77,7 @@
                         {% if food.avg_rating %}
                             ★ {{ food.avg_rating|floatformat:1 }}
                         {% else %}
-                            ★ No ratings yet
+                            ★ No ratings
                         {% endif %}
                     </p>
 

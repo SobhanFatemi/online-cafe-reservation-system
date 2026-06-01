@@ -22,7 +22,7 @@
             <h4>{{ discount.name }}</h4>
 
             <p>
-                {% if discount.type == "FIX" %}
+                {% if discount.discount_type == "FIX" %}
                     ${{ discount.amount }}
                 {% else %}
                     {{ discount.amount }}%

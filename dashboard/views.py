@@ -72,7 +72,7 @@ class AdminReservationDetailView(AdminRequiredMixin, View):
         presence = request.POST.get("attendance_status")
 
         if status == "CAN":
-            if not reservation.can_admin_cancel(request.user):
+            if not reservation.can_admin_cancel():
                 messages.error(request, "Cannot cancel this reservation.")
                 return redirect("admin_reservation_detail", pk=pk)
 
@@ -149,13 +149,13 @@ class FoodListView(AdminRequiredMixin, ListView):
 
 class FoodCreateView(AdminRequiredMixin, CreateView):
     model = FoodItem
-    fields = ["name", "category", "price", "description", "image", "is_available"]
+    fields = ["name", "category", "price", "description", "discount", "image", "is_available"]
     template_name = "dashboard/food_form.html"
     success_url = reverse_lazy("food")
 
 class FoodUpdateView(AdminRequiredMixin, UpdateView):
     model = FoodItem
-    fields = ["name", "category", "price", "description", "image", "is_available"]
+    fields = ["name", "category", "price", "description", "discount", "image", "is_available"]
     template_name = "dashboard/food_form.html"
     success_url = reverse_lazy("food")
 

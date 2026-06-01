@@ -348,32 +348,32 @@ class Reply(BaseModel):
         auto_now_add=True,
     )
 
-class Meta:
-    constraints = [
-        models.UniqueConstraint(
-            fields=["comment"],
-            name="one_reply_per_comment"
-        )
-    ]
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["comment"],
+                name="one_reply_per_comment"
+            )
+        ]
 
-def clean(self):
-    if not self.comment_id:
-        return
+    def clean(self):
+        if not self.comment_id:
+            return
 
-    comment = Comment.objects.filter(id=self.comment_id).first()
-    if not comment:
-        return
+        comment = Comment.objects.filter(id=self.comment_id).first()
+        if not comment:
+            return
 
-    if comment.user_id == self.user_id:
-        raise ValidationError("You cannot reply to your own review.")
+        if comment.user_id == self.user_id:
+            raise ValidationError("You cannot reply to your own review.")
 
-    if not self.user.is_staff:
-        raise ValidationError("Only admins can reply to reviews.")
+        if not self.user.is_staff:
+            raise ValidationError("Only admins can reply to reviews.")
 
-        
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
+            
+        def save(self, *args, **kwargs):
+            self.full_clean()
+            super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"Reply #{self.id}"
+        def __str__(self):
+            return f"Reply #{self.id}"
