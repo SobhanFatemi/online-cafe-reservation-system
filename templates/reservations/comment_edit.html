@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reservation.css' %}">
+{% endblock %}
+
+
+{% block title %}Edit Comment{% endblock %}
+
+{% block content %}
+<div class="reservation-wrapper">
+    <div class="comment-box">
+        <h3>Edit Comment</h3>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <div style="margin-top: 15px;">
+                <button type="submit" class="btn">
+                    Save Changes
+                </button>
+
+                <a href="{% url 'reservation_detail' object.reservation_id %}"
+                   class="btn"
+                   style="margin-left: 8px; background:#999;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

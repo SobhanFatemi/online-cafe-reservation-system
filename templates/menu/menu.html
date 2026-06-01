@@ -1,12 +1,13 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Menu</title>
-    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
-</head>
 
-<body>
+{% block title %}Menu{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+{% endblock %}
+
+{% block content %}
 
 <div class="menu-wrapper">
     <div class="menu-grid">
@@ -29,11 +30,14 @@
             {% for food in category.food_items.all %}
                 {% if food.is_available %}
                 <div class="food-item">
-
-                    <h4 class="food-name">{{ food.name }}</h4>
+                    <a href="{% url 'food_detail' food.pk %}" class="link-clean">
+                        <h4 class="food-name">{{ food.name }}</h4>
+                    </a>
 
                     {% if food.image %}
-                        <img src="{{ food.image.url }}" class="food-image">
+                        <a href="{% url 'food_detail' food.pk %}"  class="link-clean">
+                            <img src="{{ food.image.url }}" class="food-image">
+                        </a>
                     {% endif %}
 
                     <p>
@@ -66,7 +70,11 @@
                     </p>
 
                     <p class="rating">
-                        ★ {{ food.avg_rating|default:"No ratings" }}
+                        {% if food.avg_rating %}
+                            ★ {{ food.avg_rating|floatformat:1 }}
+                        {% else %}
+                            ★ No ratings
+                        {% endif %}
                     </p>
 
                     <p class="food-description">
@@ -83,5 +91,4 @@
     </div>
 </div>
 
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Delete Time Slot{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <h2 class="dashboard-title">Delete Time Slot</h2>
+
+    <div class="dashboard-card">
+
+        <p>Are you sure you want to delete this time slot?</p>
+
+        <strong>Date:</strong> {{ object.date }}
+        <br>
+        <strong>Table:</strong> {{ object.table }}
+        <br>
+        <strong>Start time:</strong> {{ object.start_time }}
+        <br>
+        <strong>End time:</strong> {{ object.end_time }}
+
+        <div class="slot-control-wrapper">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="action-btn clear-btn" style="margin-top: 12px;">
+                    Confirm Delete
+                </button>
+            </form>
+
+            <a href="{% url 'dashboard_time_slots' %}" class="admin-btn secondary">
+                Cancel
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

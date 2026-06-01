@@ -10,8 +10,8 @@ class Rating(models.IntegerChoices):
 class Status(models.TextChoices):
     PENDING = "PEN", "Pending"
     CONFIRMED = "CON", "Confirmed"
-    CANCELLED = "CAN", "Canceled"
-    COMPELETED = "COM", "Compeleted"
+    CANCELLED = "CAN", "Cancelled"
+    COMPLETED = "COM", "Completed"
 
 class AttendanceStatus(models.TextChoices):
     UNKNOWN = "UNK", "Unknown"

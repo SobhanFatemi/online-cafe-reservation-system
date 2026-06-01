@@ -188,3 +188,8 @@ body {
     background: #aaa;
     cursor: not-allowed;
 }
+
+.link-clean {
+    text-decoration: none;
+    color: inherit;
+}

@@ -9,9 +9,8 @@ class CustomManager(models.Manager):
 class BaseModel(models.Model):
     is_deleted = models.BooleanField(default=False)
 
-    objects = CustomManager()      # hides deleted
-    all_objects = models.Manager() # shows all rows
-
+    objects = CustomManager()     
+    all_objects = models.Manager() 
     class Meta:
         abstract = True
 

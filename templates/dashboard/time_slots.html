@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block title %}Time Slot Management{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+<div class="message-wrapper">
+    {% for message in messages %}
+    <div class="alert {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="dashboard-wrapper">
+
+    <div class="food-header-row">
+        <h2 class="dashboard-title">Time Slot Management</h2>
+
+        <a href="{% url 'dashboard_time_slot_create' %}" class="admin-btn small">
+            + Add Time Slot
+        </a>
+    </div>
+
+    <div class="food-compact-grid">
+        {% for slot in time_slots %}
+        <div class="food-compact-card">
+
+            <div class="food-badge {% if slot.is_active %}available{% else %}unavailable{% endif %}">
+                {% if slot.is_active %}Active{% else %}Inactive{% endif %}
+            </div>
+
+            <div class="food-compact-body">
+                <h4>{{ slot.table }}</h4>
+
+                <p class="food-compact-category">
+                    {{ slot.date }}
+                </p>
+
+                <p class="food-compact-price">
+                    {{ slot.start_time }} – {{ slot.end_time }}
+                </p>
+
+                {% if slot.note %}
+                <p class="food-compact-category" style="font-size: 12px; color:#8a6d5c;">
+                    {{ slot.note }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="food-compact-actions">
+                <a href="{% url 'dashboard_time_slot_edit' slot.id %}" class="admin-btn small">
+                    Edit
+                </a>
+                <a href="{% url 'dashboard_time_slot_delete' slot.id %}"
+                   class="admin-btn small secondary">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,18 +1,24 @@
 from datetime import datetime
 from django.utils import timezone
-from django.views.generic import CreateView, ListView, DetailView, View
+from django.views.generic import CreateView, ListView, DetailView, View, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse
+from django.db.models import Avg
+from django.db import transaction, IntegrityError
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Prefetch
 import json
 
 from menu.models import FoodItem, Category
-from .models import Reservation, TimeSlot, CafeTable, Status, AttendanceStatus, ReservationFood
-from .forms import ReservationCreateForm
+from .models import Reservation, TimeSlot, CafeTable, Status, AttendanceStatus, ReservationFood, Comment, Reply
+from .forms import ReservationCreateForm, CommentForm
 
 
 class ReservationCreateView(LoginRequiredMixin, CreateView):
@@ -133,13 +139,19 @@ class ReservationDetailView(LoginRequiredMixin, DetailView):
     template_name = "reservations/reservation_detail.html"
     context_object_name = "reservation"
 
-    def get_queryset(self):
-        return Reservation.objects.filter(
-            user=self.request.user
-        ).select_related(
-            "time_slot",
-            "time_slot__table"
-        ).prefetch_related("reservation_foods__food_item")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        reservation = self.object
+
+        context["can_comment"] = reservation.can_user_comment()
+
+        user_comment = reservation.comments.filter(user=self.request.user).first()
+        context["user_comment"] = user_comment
+
+        if reservation.can_user_comment() and not user_comment:
+            context["comment_form"] = CommentForm()
+
+        return context
 
 class ReservationOrderView(LoginRequiredMixin, DetailView):
     model = Reservation
@@ -172,7 +184,10 @@ class ReservationOrderView(LoginRequiredMixin, DetailView):
             for item in existing_items
         }
 
-        food_qs = FoodItem.objects.all()
+        food_qs = FoodItem.objects.annotate(
+            avg_rating=Avg("reservation_foods__reservation__comments__rating")
+        )
+
         context["categories"] = Category.objects.prefetch_related(
             Prefetch("food_items", queryset=food_qs)
         )
@@ -208,30 +223,6 @@ class ReservationOrderView(LoginRequiredMixin, DetailView):
                 )
 
         return JsonResponse({"status": "success"})
-    
-class CancelReservationView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        reservation = get_object_or_404(
-            Reservation,
-            pk=pk,
-            user=request.user
-        )
-
-        reservation_datetime = datetime.combine(
-            reservation.date,
-            reservation.time_slot.start_time
-        )
-        reservation_datetime = timezone.make_aware(reservation_datetime)
-
-        if reservation_datetime <= timezone.localtime():
-            messages.error(request, "Reservation already started.")
-            return redirect("reservation_detail", pk=pk)
-
-        reservation.status = Status.CANCELED
-        reservation.save()
-
-        messages.success(request, "Reservation cancelled.")
-        return redirect("my_reservations")
 
 class MarkAttendanceView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -247,7 +238,113 @@ class MarkAttendanceView(LoginRequiredMixin, View):
             AttendanceStatus.ABSENT
         ]:
             reservation.attendance_status = attendance_value
-            reservation.status = Status.COMPELETED
+            reservation.status = Status.COMPLETED
             reservation.save()
 
         return redirect("reservation_detail", pk=pk)
+    
+class ReservationCancelView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        reservation = get_object_or_404(
+            Reservation,
+            pk=pk,
+            user=request.user
+        )
+
+        if not reservation.can_user_cancel():
+            messages.error(request, "You cannot cancel this reservation.")
+            return redirect("reservation_detail", pk=pk)
+
+        reservation.status = "CAN"
+        reservation.save()
+
+        messages.success(request, "Reservation canceled successfully.")
+        return redirect("reservation_detail", pk=pk)
+    
+class ReservationCommentCreateView(View):
+    def post(self, request, pk):
+        reservation = get_object_or_404(
+            Reservation,
+            pk=pk,
+            user=request.user
+        )
+
+        if not reservation.can_user_comment():
+            messages.error(
+                request,
+                "You cannot comment on this reservation."
+            )
+            return redirect("reservation_detail", pk=pk)
+
+        form = CommentForm(request.POST)
+
+        if not form.is_valid():
+            messages.error(
+                request,
+                "Please correct the errors in the form."
+            )
+            return redirect("reservation_detail", pk=pk)
+
+        comment_text = form.cleaned_data["comment"]
+        rating = form.cleaned_data["rating"] 
+
+        with transaction.atomic():
+            comment, created = Comment.all_objects.update_or_create(
+                user=request.user,
+                reservation=reservation,
+                defaults={
+                    "comment": comment_text,
+                    "rating": rating,     
+                    "is_deleted": False,
+                },
+            )
+
+        messages.success(
+            request,
+            "Your comment has been updated."
+            if not created
+            else "Thank you! Your comment has been submitted."
+        )
+
+        return redirect("reservation_detail", pk=pk)
+    
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    fields = ["comment", "rating"]
+    template_name = "reservations/comment_edit.html"
+
+    def test_func(self):
+        comment = self.get_object()
+        user = self.request.user
+        return user.is_staff or comment.user == user
+
+    def get_success_url(self):
+        return reverse_lazy("reservation_detail", kwargs={
+            "pk": self.object.reservation_id
+        })
+    
+class CommentDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+
+        if request.user.is_staff:
+            reservation_id = comment.reservation_id
+            comment.delete()
+            return redirect("reservation_detail", pk=reservation_id)
+
+        if not comment.can_user_delete(request.user):
+            raise PermissionDenied(
+                "You cannot delete this comment after admin reply."
+            )
+
+        reservation_id = comment.reservation_id
+        comment.delete()
+        return redirect("reservation_detail", pk=reservation_id)
+    
+@method_decorator(staff_member_required, name="dispatch")
+class ReplyDeleteView(View):
+
+    def post(self, request, pk):
+        reply = get_object_or_404(Reply, pk=pk)
+        reply.delete()
+        return redirect("comments-list")

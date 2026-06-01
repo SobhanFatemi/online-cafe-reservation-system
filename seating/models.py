@@ -78,8 +78,11 @@ class TimeSlot(BaseModel):
     )
 
     class Meta:
-        unique_together = ("table", "date", "start_time")
+        unique_together = ("table", "date", "start_time", "end_time")
         ordering = ["date", "start_time"]
+
+    def delete(self, *args, **kwargs):
+        super(BaseModel, self).delete(*args, **kwargs)
 
     def clean(self):
         if self.start_time and self.end_time:
@@ -91,16 +94,23 @@ class TimeSlot(BaseModel):
                     "end_time": "End time must be after start time."
                 })
 
-            self.duration_minutes = int(
-                (end - start).total_seconds() / 60
+            self.duration_minutes = int((end - start).total_seconds() / 60)
+
+        if self.table and self.date and self.start_time and self.end_time:
+            overlapping = TimeSlot.objects.filter(
+                table=self.table,
+                date=self.date,
+                is_active=True
+            ).exclude(pk=self.pk).filter(
+                models.Q(start_time__lt=self.end_time) &
+                models.Q(end_time__gt=self.start_time)
             )
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.start_time} - {self.end_time}"
+            if overlapping.exists():
+                raise ValidationError({
+                    "start_time": "This time slot overlaps with an existing time slot.",
+                    "end_time": "This time slot overlaps with an existing time slot."
+                })
 
 class WorkingHour(BaseModel):
     start_time = models.TimeField(

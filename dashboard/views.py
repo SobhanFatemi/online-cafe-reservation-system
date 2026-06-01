@@ -2,20 +2,24 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError
 from django.views.generic import (
     TemplateView, ListView, UpdateView,
-    CreateView, DeleteView, View
+    CreateView, DeleteView, View, DetailView
 )
+import logging
 from django import forms
 from django.contrib import messages
 from django.utils import timezone
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date as d
 
-from reservations.models import Reservation, TimeSlot
+from reservations.models import Reservation, TimeSlot, Comment, Reply
 from seating.models import CafeTable, WorkingHour
 from menu.models import FoodItem, Category, Discount
 from .models import CafeSetting
+from .forms import ReplyForm
 from seating.choices import DayofWeek
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -33,7 +37,7 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
         context["pending"] = Reservation.objects.filter(status="PEN").count()
         context["confirmed"] = Reservation.objects.filter(status="CON").count()
         context["completed"] = Reservation.objects.filter(status="COM").count()
-        context["canceled"] = Reservation.objects.filter(status="CAN").count()
+        context["cancelled"] = Reservation.objects.filter(status="CAN").count()
 
         return context
 
@@ -47,14 +51,30 @@ class AdminReservationDetailView(AdminRequiredMixin, View):
     template_name = "dashboard/reservation_detail.html"
 
     def get(self, request, pk):
-        reservation = get_object_or_404(Reservation, pk=pk)
-        return render(request, self.template_name, {"object": reservation})
+        reservation = get_object_or_404(
+            Reservation.objects
+            .select_related("time_slot", "time_slot__table", "user")
+            .prefetch_related("reservation_foods__food_item"),
+            pk=pk
+        )
+
+        context = {
+            "object": reservation,
+            "can_admin_cancel": reservation.can_admin_cancel(),
+        }
+
+        return render(request, self.template_name, context)
 
     def post(self, request, pk):
         reservation = get_object_or_404(Reservation, pk=pk)
 
         status = request.POST.get("status")
         presence = request.POST.get("attendance_status")
+
+        if status == "CAN":
+            if not reservation.can_admin_cancel():
+                messages.error(request, "Cannot cancel this reservation.")
+                return redirect("admin_reservation_detail", pk=pk)
 
         if status in ["PEN", "CON", "COM", "CAN"]:
             reservation.status = status
@@ -64,7 +84,21 @@ class AdminReservationDetailView(AdminRequiredMixin, View):
 
         reservation.save()
 
-        return redirect("reservation_detail", pk=reservation.pk)
+        return redirect("admin_reservation_detail", pk=pk)
+    
+class AdminReservationCancelView(AdminRequiredMixin, View):
+    def post(self, request, pk):
+        reservation = get_object_or_404(Reservation, pk=pk)
+
+        if not reservation.can_admin_cancel():
+            messages.error(request, "Admin cancel window has expired.")
+            return redirect("admin_reservation_detail", pk=pk)
+
+        reservation.status = "CAN"
+        reservation.save()
+
+        messages.success(request, "Reservation canceled successfully.")
+        return redirect("admin_reservation_detail", pk=pk)
 
 class TableListView(AdminRequiredMixin, ListView):
     model = CafeTable
@@ -115,13 +149,13 @@ class FoodListView(AdminRequiredMixin, ListView):
 
 class FoodCreateView(AdminRequiredMixin, CreateView):
     model = FoodItem
-    fields = ["name", "category", "price", "description", "image", "is_available"]
+    fields = ["name", "category", "price", "description", "discount", "image", "is_available"]
     template_name = "dashboard/food_form.html"
     success_url = reverse_lazy("food")
 
 class FoodUpdateView(AdminRequiredMixin, UpdateView):
     model = FoodItem
-    fields = ["name", "category", "price", "description", "image", "is_available"]
+    fields = ["name", "category", "price", "description", "discount", "image", "is_available"]
     template_name = "dashboard/food_form.html"
     success_url = reverse_lazy("food")
 
@@ -163,10 +197,8 @@ class CafeSettingsView(AdminRequiredMixin, UpdateView):
         return CafeSetting.objects.first()
     
 class GenerateSlotsView(AdminRequiredMixin, View):
-
     def post(self, request):
         settings = CafeSetting.load()
-
         if not settings:
             messages.error(request, "Cafe settings not configured.")
             return redirect("dashboard")
@@ -180,61 +212,56 @@ class GenerateSlotsView(AdminRequiredMixin, View):
             messages.error(request, "Working hours are not defined.")
             return redirect("dashboard")
 
+        slot_minutes = settings.slot_duration_minutes
+        generate_days = settings.auto_generate_days_ahead
+
         created_count = 0
         skipped_count = 0
 
-        for day_offset in range(settings.auto_generate_days_ahead):
+        for day_offset in range(generate_days):
             current_date = today + timedelta(days=day_offset)
-
             weekday_code = DayofWeek.values[current_date.weekday()]
+
             day_hours = working_hours.filter(day_of_week=weekday_code)
+            if not day_hours.exists():
+                continue
 
             for hours in day_hours:
-
                 start_dt = datetime.combine(current_date, hours.start_time)
                 end_dt = datetime.combine(current_date, hours.end_time)
 
-                current_time = start_dt
+                current_dt = start_dt
 
-                while current_time < end_dt:
-                    slot_end = current_time + timedelta(
-                        minutes=settings.slot_duration_minutes
-                    )
-
-                    if slot_end > end_dt:
-                        break
+                while current_dt + timedelta(minutes=slot_minutes) <= end_dt:
+                    slot_end = current_dt + timedelta(minutes=slot_minutes)
+                    duration = int((slot_end - current_dt).total_seconds() / 60)
 
                     for table in tables:
-                        try:
-                            slot, created = TimeSlot.objects.get_or_create(
+                        existing_slot = TimeSlot.objects.filter(
+                            date=current_date,
+                            table=table,
+                            start_time=current_dt.time(),
+                            end_time=slot_end.time(),
+                        ).first()
+
+                        if existing_slot:
+                            skipped_count += 1
+                        else:
+                            TimeSlot.objects.create(
                                 date=current_date,
                                 table=table,
-                                start_time=current_time.time(),
+                                start_time=current_dt.time(),
                                 end_time=slot_end.time(),
+                                duration_minutes=duration,
                             )
+                            created_count += 1
 
-                            if created:
-                                created_count += 1
-                            else:
-                                skipped_count += 1
+                    current_dt = slot_end
 
-                        except (ValidationError, IntegrityError):
-                            skipped_count += 1
-                            continue
-
-                    current_time = slot_end
-
-        if created_count > 0:
-            messages.success(
-                request,
-                f"{created_count} slots generated successfully."
-            )
-
-        if skipped_count > 0:
-            messages.info(
-                request,
-                f"{skipped_count} slots already existed and were skipped."
-            )
+        if created_count:
+            messages.success(request, f"{created_count} slots generated successfully.")
+        if skipped_count:
+            messages.info(request, f"{skipped_count} slots already existed or were skipped.")
 
         return redirect("dashboard")
     
@@ -333,3 +360,151 @@ class DiscountDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Discount deleted.")
         return super().delete(request, *args, **kwargs)
+
+class TimeSlotListView(View):
+    def get(self, request):
+        slots = TimeSlot.objects.order_by("-date", "start_time")
+        return render(request, "dashboard/time_slots.html", {
+            "time_slots": slots
+        })
+
+class TimeSlotCreateView(View):
+    def get(self, request):
+        tables = CafeTable.objects.filter(is_active=True)
+        return render(request, "dashboard/time_slot_form.html", {
+            "tables": tables,
+            "time_slot": TimeSlot(),
+            "is_edit": False,
+        })
+
+    def post(self, request):
+        table = CafeTable.objects.get(id=request.POST.get("table"))
+
+        slot = TimeSlot(
+            table=table,
+            date=request.POST.get("date"),
+            start_time=request.POST.get("start_time"),
+            end_time=request.POST.get("end_time"),
+            note=request.POST.get("note"),
+            is_active=request.POST.get("is_active") == "true",
+        )
+
+        try:
+            slot.full_clean()
+            slot.save()
+            messages.success(request, "Time slot created successfully.")
+            return redirect("dashboard_time_slots")
+        except ValidationError as e:
+            messages.error(request, e)
+            return redirect("dashboard_time_slot_create")
+
+class TimeSlotEditView(AdminRequiredMixin, View):
+    template_name = "dashboard/time_slot_edit.html"
+
+    def get(self, request, pk):
+        slot = get_object_or_404(TimeSlot, pk=pk)
+        tables = CafeTable.objects.filter(is_active=True).order_by("table_number")
+        return render(request, self.template_name, {"slot": slot, "tables": tables})
+
+    def post(self, request, pk):
+        slot = get_object_or_404(TimeSlot, pk=pk)
+
+        table_id = request.POST.get("table")
+        date_str = request.POST.get("date")
+        start_str = request.POST.get("start_time")
+        end_str = request.POST.get("end_time")
+        note = request.POST.get("note")
+        is_active = request.POST.get("is_active") == "true"
+
+        
+
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        start_obj = datetime.strptime(start_str, "%H:%M").time()
+        end_obj = datetime.strptime(end_str, "%H:%M").time()
+
+        if start_obj >= end_obj:
+            messages.error(request, "End time must be after start time.")
+            return redirect("dashboard_time_slot_edit", pk=pk)
+
+        s = datetime.combine(d.today(), start_obj)
+        e = datetime.combine(d.today(), end_obj)
+        duration = int((e - s).seconds / 60)
+
+        slot.table = CafeTable.objects.get(id=table_id)
+        slot.date = date_obj
+        slot.start_time = start_obj
+        slot.end_time = end_obj
+        slot.duration_minutes = duration
+        slot.note = note or ""
+        slot.is_active = is_active
+
+        try:
+            slot.full_clean()
+            slot.save()
+            messages.success(request, "Time slot updated successfully.")
+        except ValidationError as e:
+            messages.error(request, e.messages[0])
+
+        return redirect("dashboard_time_slots")
+
+class TimeSlotDeleteView(AdminRequiredMixin, DeleteView):
+    model = TimeSlot
+    template_name = "dashboard/time_slot_confirm_delete.html"
+    success_url = reverse_lazy("dashboard_time_slots")
+
+class CommentsListView(AdminRequiredMixin, View):
+    def get(self, request):
+        comments = (
+            Comment.objects
+            .select_related("user", "reservation")
+            .prefetch_related("replies") 
+            .order_by("-created_at")
+        )
+
+        return render(request, "dashboard/comments.html", {
+            "comments": comments
+        })
+
+class ReplyToCommentView(AdminRequiredMixin, View):
+    template_name = "dashboard/comment_reply_form.html"
+
+    def get(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        reply = Reply.objects.filter(comment=comment).first()
+        form = ReplyForm(instance=reply)
+
+        return render(
+            request,
+            self.template_name,
+            {"form": form, "comment": comment, "reply": reply}
+        )
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        reply = Reply.objects.filter(comment=comment).first()
+        form = ReplyForm(request.POST, instance=reply)
+
+        if form.is_valid():
+            reply = form.save(commit=False)
+            reply.comment = comment
+            reply.user = request.user
+            reply.save()
+
+            messages.success(request, "Reply saved successfully.")
+            return redirect("dashboard-comments")
+
+        return render(
+            request,
+            self.template_name,
+            {"comment": comment, "form": form, "reply": reply}
+        )
+    
+class ReplyDeleteView(AdminRequiredMixin, View):
+    def post(self, request, reply_id):
+        reply = get_object_or_404(Reply, id=reply_id)
+        reply.delete()
+
+        messages.success(request, "Reply deleted successfully.")
+        return redirect("dashboard-comments")
